@@ -1,0 +1,327 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum VideoStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  HIDDEN
+}
+
+enum BannerStatus {
+  DRAFT
+  ACTIVE
+  EXPIRED
+}
+
+enum IngestAction {
+  UPSERT
+  DELETE
+  BATCH_UPSERT
+}
+
+enum IngestStatus {
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  passwordHash    String?
+  nickname        String?
+  avatar          String?
+  bio             String?
+  status          UserStatus     @default(ACTIVE)
+  memberLevel     Int            @default(0)
+  memberExpiredAt DateTime?
+  isSuperAdmin    Boolean        @default(false)
+  favorites       Favorite[]
+  watchHistories  WatchHistory[]
+  comments        Comment[]
+  searches        Search[]
+  createdVideos   Video[]        @relation("VideoCreator")
+  auditLogs       AuditLog[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  parentId    String?
+  parent      Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryTree")
+  name        String
+  slug        String     @unique
+  description String?
+  sortOrder   Int        @default(0)
+  status      String     @default("ACTIVE")
+  videos      Video[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  color     String?
+  videos    VideoTag[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Video {
+  id               String          @id @default(cuid())
+  title            String
+  slug             String          @unique
+  subtitle         String?
+  description      String?
+  coverUrl         String?
+  posterUrl        String?
+  trailerUrl       String?
+  type             String
+  categoryId       String?
+  category         Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  region           String?
+  language         String?
+  year             Int?
+  durationSeconds  Int?
+  status           VideoStatus     @default(DRAFT)
+  publishedAt      DateTime?
+  viewCount        Int             @default(0)
+  likeCount        Int             @default(0)
+  favoriteCount    Int             @default(0)
+  commentCount     Int             @default(0)
+  sourceProvider   String
+  sourceExternalId String
+  sourcePayload    Json?
+  createdBy        String?
+  creator          User?           @relation("VideoCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  tags             VideoTag[]
+  sources          VideoSource[]
+  episodes         VideoEpisode[]
+  subtitles        VideoSubtitle[]
+  comments         Comment[]
+  favorites        Favorite[]
+  watchHistories   WatchHistory[]
+  collectionItems  CollectionItem[]
+  banners          Banner[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@index([categoryId, status, publishedAt])
+  @@unique([sourceProvider, sourceExternalId])
+}
+
+model VideoTag {
+  id        String   @id @default(cuid())
+  videoId   String
+  tagId     String
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([videoId, tagId])
+}
+
+model VideoSource {
+  id          String   @id @default(cuid())
+  videoId     String
+  sourceType  String
+  sourceUrl   String
+  storagePath String?
+  cdnUrl      String?
+  resolution  String?
+  bitrate     Int?
+  format      String?
+  sortOrder   Int      @default(0)
+  video       Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model VideoEpisode {
+  id              String   @id @default(cuid())
+  videoId         String
+  title           String
+  episodeNo       Int
+  sourceUrl       String?
+  durationSeconds Int?
+  isFree          Boolean  @default(true)
+  publishedAt     DateTime?
+  sortOrder       Int      @default(0)
+  video           Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+
+  @@unique([videoId, episodeNo])
+}
+
+model VideoSubtitle {
+  id        String   @id @default(cuid())
+  videoId   String
+  language  String
+  fileUrl   String
+  format    String?
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Collection {
+  id          String           @id @default(cuid())
+  title       String
+  slug        String           @unique
+  description String?
+  coverUrl    String?
+  type        String           @default("featured")
+  status      String           @default("DRAFT")
+  sortOrder   Int              @default(0)
+  items       CollectionItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model CollectionItem {
+  id           String      @id @default(cuid())
+  collectionId String
+  videoId      String
+  sortOrder    Int         @default(0)
+  collection   Collection  @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  video        Video       @relation(fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, videoId])
+}
+
+model Banner {
+  id        String       @id @default(cuid())
+  title     String
+  imageUrl  String
+  targetUrl String?
+  videoId   String?
+  video     Video?       @relation(fields: [videoId], references: [id], onDelete: SetNull)
+  sortOrder Int          @default(0)
+  startAt   DateTime?
+  endAt     DateTime?
+  status    BannerStatus @default(DRAFT)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  videoId   String
+  userId    String
+  parentId  String?
+  content   String
+  status    CommentStatus @default(PENDING)
+  likeCount Int           @default(0)
+  parent    Comment?      @relation("CommentTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Comment[]     @relation("CommentTree")
+  video     Video         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, videoId])
+}
+
+model WatchHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  videoId         String
+  episodeId       String?
+  progressSeconds Int      @default(0)
+  watchedAt       DateTime @default(now())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  video           Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+}
+
+model Search {
+  id        String   @id @default(cuid())
+  userId    String?
+  keyword   String
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model Ad {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  imageUrl  String?
+  videoUrl  String?
+  targetUrl String?
+  placement String
+  startAt   DateTime?
+  endAt     DateTime?
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Page {
+  id             String   @id @default(cuid())
+  title          String
+  slug           String   @unique
+  content        String?
+  seoTitle       String?
+  seoDescription String?
+  status         String   @default("DRAFT")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model SystemSetting {
+  id           String   @id @default(cuid())
+  settingKey   String   @unique
+  settingValue Json?
+  updatedAt    DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  module    String
+  targetId  String?
+  detail    Json?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model IngestLog {
+  id             String       @id @default(cuid())
+  provider       String
+  action         IngestAction
+  externalId     String
+  requestPayload Json?
+  responseStatus IngestStatus
+  errorMessage   String?
+  createdAt      DateTime     @default(now())
+
+  @@index([provider, externalId, createdAt])
+}

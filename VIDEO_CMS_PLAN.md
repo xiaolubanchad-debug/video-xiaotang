@@ -10,17 +10,17 @@
 
 - 提供完整的视频内容发布与管理能力
 - 提供适配移动端和桌面端的前台观看体验
-- 提供可运营的后台 CMS，让编辑和运营可独立工作
+- 提供可运营的后台 CMS，由单个超级管理员统一管理
 - 支持后续扩展会员、广告、专题、支付、推荐系统
+- 提供内容新增/删除 API，供 `openclaw` 实时采集后自动入库
 
 ### 1.3 用户角色
 
 - 游客：浏览、搜索、观看部分公开内容
 - 注册用户：收藏、评论、查看历史、订阅
 - 会员用户：观看会员内容、高清内容、无广告内容
-- 编辑/运营：管理视频、专题、推荐位、评论
-- 审核员：审核内容和用户评论
-- 超级管理员：管理权限、系统配置、广告、日志
+- 超级管理员：唯一后台管理者，负责视频、推荐位、评论、用户和系统设置
+- `openclaw` 采集服务：通过受保护 API 自动新增、更新、删除视频内容
 
 ### 1.4 前台功能清单
 
@@ -89,7 +89,7 @@
 - 视频总数
 - 播放总量
 - 用户增长
-- 待审核数量
+- 采集成功/失败数量
 - 热门内容排行
 
 #### 内容管理
@@ -100,6 +100,8 @@
 - 封面、海报、预告片管理
 - 字幕管理
 - 批量导入与批量操作
+- 采集来源标记
+- 外部内容 ID 去重
 
 #### 分类与标签管理
 
@@ -147,19 +149,20 @@
 - 存储设置
 - 转码设置
 - 播放器设置
-- 权限角色设置
+- API Key 设置
+- 采集来源白名单
 - 操作日志
 
 ### 1.6 核心业务流程
 
-1. 运营上传视频或录入视频源
-2. 系统保存封面、剧照、字幕、分类和标签
-3. 转码服务生成多清晰度资源
-4. 审核员审核视频内容
-5. 审核通过后上架发布
-6. 运营设置推荐位或加入专题
-7. 用户在前台浏览、搜索、观看、评论、收藏
-8. 后台统计播放与互动数据
+1. `openclaw` 在网络上实时采集视频内容
+2. `openclaw` 调用新增内容 API，将视频基础信息、分类、标签、封面、播放地址写入系统
+3. 系统按外部来源 ID 做幂等去重，避免重复入库
+4. 超级管理员在后台补充推荐位、专题、上下架和内容修正
+5. 如后续接入转码服务，系统生成多清晰度资源
+6. 用户在前台浏览、搜索、观看、评论、收藏
+7. `openclaw` 或超级管理员可调用删除接口移除内容
+8. 后台统计播放、采集和互动数据
 
 ### 1.7 非功能需求
 
@@ -176,7 +179,8 @@
 
 - 前台：首页、分类页、搜索页、详情页、登录注册、用户中心
 - 后台：视频管理、分类管理、标签管理、推荐位管理、评论审核、用户管理
-- 基础能力：上传封面、录入视频地址、播放器、SEO、权限
+- 基础能力：上传封面、录入视频地址、播放器、SEO、单超级管理员登录
+- 采集接入：内容新增 API、内容删除 API、来源去重、API 鉴权
 
 #### 第二阶段扩展
 
@@ -211,22 +215,9 @@
 - status
 - member_level
 - member_expired_at
+- is_super_admin
 - created_at
 - updated_at
-
-#### roles
-
-- id
-- name
-- code
-- description
-- created_at
-
-#### user_roles
-
-- id
-- user_id
-- role_id
 
 #### videos
 
@@ -251,6 +242,9 @@
 - like_count
 - favorite_count
 - comment_count
+- source_provider
+- source_external_id
+- source_payload
 - created_by
 - created_at
 - updated_at
@@ -378,6 +372,17 @@
 - keyword
 - created_at
 
+#### ingest_logs
+
+- id
+- provider
+- action
+- external_id
+- request_payload
+- response_status
+- error_message
+- created_at
+
 #### ads
 
 - id
@@ -420,7 +425,6 @@
 
 ### 2.2 关系说明
 
-- `users` 对 `roles` 是多对多
 - `videos` 对 `categories` 是多对一
 - `videos` 对 `tags` 是多对多
 - `videos` 对 `video_sources` 是一对多
@@ -428,11 +432,13 @@
 - `videos` 对 `comments` 是一对多
 - `users` 对 `comments`、`favorites`、`watch_histories` 是一对多
 - `collections` 对 `videos` 是多对多
+- `ingest_logs` 记录 `openclaw` 对内容接口的调用结果
 
 ### 2.3 建表建议
 
 - 所有主键使用 UUID 或 bigint
 - 高频查询字段加索引：`slug`、`status`、`published_at`、`category_id`
+- 为 `source_provider + source_external_id` 建唯一索引，保证采集幂等
 - 搜索相关字段可先做普通索引，后续接入全文搜索
 - 评论、历史、日志类表做好分页索引
 
@@ -443,8 +449,6 @@ flowchart LR
   U["users"] --> F["favorites"]
   U --> WH["watch_histories"]
   U --> C["comments"]
-  U --> UR["user_roles"]
-  UR --> R["roles"]
   V["videos"] --> VS["video_sources"]
   V --> VE["video_episodes"]
   V --> C
@@ -453,9 +457,44 @@ flowchart LR
   V --> VT["video_tags"]
   VT --> T["tags"]
   V --> CA["categories"]
+  I["ingest_logs"] --> V
   CO["collections"] --> CI["collection_items"]
   CI --> V
 ```
+
+## 2.5 采集 API 设计要求
+
+### 鉴权方式
+
+- `openclaw` 调用内部 API 时必须携带 `x-api-key`
+- 服务端校验 API Key，后续可增加 IP 白名单
+- 所有采集接口写入 `ingest_logs`
+
+### 必要接口
+
+#### 新增或更新视频
+
+- `POST /api/internal/videos/upsert`
+- 按 `source_provider + source_external_id` 做幂等写入
+- 支持写入标题、简介、封面、分类、标签、播放源、集数、字幕、上下架状态
+
+#### 删除视频
+
+- `DELETE /api/internal/videos/:sourceProvider/:sourceExternalId`
+- 支持按来源和外部 ID 删除
+- 删除动作写入日志
+
+#### 批量推送
+
+- `POST /api/internal/videos/batch-upsert`
+- 支持批量导入，返回成功、失败、跳过数量
+
+### 接口约束
+
+- 返回明确的成功、重复、失败状态
+- 对重复内容只更新，不重复创建
+- 错误响应保留结构化信息，便于 `openclaw` 重试
+- 所有删除动作都要留审计日志
 
 ## 3. 前后台页面原型清单
 
@@ -536,10 +575,10 @@ flowchart LR
 
 #### 系统中心
 
-- 角色权限页
 - 管理员账号页
 - 系统设置页
 - SEO 设置页
+- API Key 设置页
 - 存储配置页
 - 播放器配置页
 - 操作日志页
@@ -558,14 +597,15 @@ flowchart LR
 ## 4. 推荐技术栈
 
 - 前台：Next.js
-- 后台：Next.js Admin 或 React Admin
-- 服务端：Next.js API 或 NestJS
+- 后台：自建 Next.js Admin
+- 服务端：Next.js API
 - 数据库：PostgreSQL
 - ORM：Prisma
 - 鉴权：NextAuth 或 JWT
 - 缓存：Redis
 - 文件存储：OSS / S3
 - 视频处理：FFmpeg + 队列服务
+- 采集系统：`openclaw` 通过内部 API 实时推送内容
 
 ## 5. 下一步建议
 

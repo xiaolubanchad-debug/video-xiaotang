@@ -1,3 +1,3 @@
 # video-xiaotang
 
-视频网站与 CMS 后台一体化项目。
+A video platform with a public site, a super-admin CMS, and internal ingest APIs.
