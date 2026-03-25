@@ -178,6 +178,8 @@ export default async function VideoDetailPage({ params }: Props) {
                     format={playableFormat}
                     poster={video.coverUrl ?? video.posterUrl}
                     title={video.title}
+                    videoId={video.id}
+                    shouldTrackHistory={Boolean(session?.user?.id)}
                   />
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     {statCards.map((item) => (

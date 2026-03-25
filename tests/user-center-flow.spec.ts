@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 const INTERNAL_API_KEY = "replace-with-an-internal-api-key";
 
-test("viewer can manage favorites and pending comments in the user center", async ({
+test("viewer can manage favorites, pending comments, and watch history in the user center", async ({
   page,
   request,
 }) => {
@@ -52,8 +52,18 @@ test("viewer can manage favorites and pending comments in the user center", asyn
     await page.getByRole("button", { name: /加入收藏/ }).click();
     await expect(page.getByRole("button", { name: /已收藏/ })).toBeVisible();
 
+    await page.locator("video").evaluate((node) => {
+      const video = node as HTMLVideoElement;
+      video.currentTime = 18;
+      video.dispatchEvent(new Event("pause"));
+    });
+
     await page.goto("/me/favorites");
     await expect(page.getByText(title).first()).toBeVisible();
+
+    await page.goto("/me/history");
+    await expect(page.getByText(title).first()).toBeVisible();
+    await expect(page.getByText("已观看约 18 秒")).toBeVisible();
 
     await page.goto(`/videos/${slug}`);
     await page.getByPlaceholder("写下你对这部影片的观感...").fill(commentText);

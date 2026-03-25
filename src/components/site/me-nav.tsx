@@ -4,6 +4,7 @@ const items = [
   { href: "/me", label: "总览" },
   { href: "/me/favorites", label: "我的收藏" },
   { href: "/me/comments", label: "我的评论" },
+  { href: "/me/history", label: "最近观看" },
 ];
 
 export function MeNav({ activeHref }: { activeHref: string }) {

@@ -8,10 +8,20 @@ type Props = {
   format?: string | null;
   poster?: string | null;
   title: string;
+  videoId?: string;
+  shouldTrackHistory?: boolean;
 };
 
-export function VideoPlayer({ src, format, poster, title }: Props) {
+export function VideoPlayer({
+  src,
+  format,
+  poster,
+  title,
+  videoId,
+  shouldTrackHistory = false,
+}: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const lastTrackedRef = useRef(0);
   const sourceKey = `${src}:${format ?? "unknown"}`;
   const unsupportedHls =
     format === "m3u8" &&
@@ -24,6 +34,10 @@ export function VideoPlayer({ src, format, poster, title }: Props) {
     key: string;
     message: string;
   } | null>(null);
+
+  useEffect(() => {
+    lastTrackedRef.current = 0;
+  }, [sourceKey]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -72,6 +86,76 @@ export function VideoPlayer({ src, format, poster, title }: Props) {
       video.load();
     };
   }, [format, sourceKey, src]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+
+    if (!video || !videoId || !shouldTrackHistory) {
+      return;
+    }
+
+    const trackedVideo = video;
+
+    let destroyed = false;
+
+    async function reportProgress(progressSeconds: number, force = false) {
+      const normalized = Math.floor(progressSeconds);
+
+      if (normalized <= 0) {
+        return;
+      }
+
+      if (normalized < lastTrackedRef.current) {
+        return;
+      }
+
+      if (!force && normalized - lastTrackedRef.current < 15) {
+        return;
+      }
+
+      lastTrackedRef.current = normalized;
+
+      try {
+        await fetch(`/api/videos/${videoId}/history`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            progressSeconds: normalized,
+          }),
+          keepalive: true,
+        });
+      } catch {
+        if (!destroyed) {
+          // Swallow history errors so playback UX stays uninterrupted.
+        }
+      }
+    }
+
+    function handleTimeUpdate() {
+      void reportProgress(trackedVideo.currentTime);
+    }
+
+    function handlePause() {
+      void reportProgress(trackedVideo.currentTime, true);
+    }
+
+    function handleEnded() {
+      void reportProgress(trackedVideo.duration || trackedVideo.currentTime, true);
+    }
+
+    trackedVideo.addEventListener("timeupdate", handleTimeUpdate);
+    trackedVideo.addEventListener("pause", handlePause);
+    trackedVideo.addEventListener("ended", handleEnded);
+
+    return () => {
+      destroyed = true;
+      trackedVideo.removeEventListener("timeupdate", handleTimeUpdate);
+      trackedVideo.removeEventListener("pause", handlePause);
+      trackedVideo.removeEventListener("ended", handleEnded);
+    };
+  }, [shouldTrackHistory, videoId]);
 
   const error = unsupportedHls
     ? "当前浏览器暂不支持此 HLS 播放流。"

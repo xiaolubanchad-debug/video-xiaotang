@@ -1,8 +1,8 @@
 import { MeNav } from "@/components/site/me-nav";
 import { SiteShell } from "@/components/site/site-shell";
 import { requireViewerPageSession } from "@/lib/auth";
-import { getSiteNavigationCategories } from "@/lib/site-videos";
 import { getViewerCenterSummary } from "@/lib/site-account";
+import { getSiteNavigationCategories } from "@/lib/site-videos";
 
 export default async function MePage() {
   const session = await requireViewerPageSession();
@@ -21,17 +21,18 @@ export default async function MePage() {
               {session.user.name || session.user.email}
             </h1>
             <p className="max-w-3xl text-base leading-8 text-[#b6b4bc]">
-              这里收纳你在站内的评论和收藏。当前版本先做最核心的个人互动能力，后续再接入观看历史和更多偏好设置。
+              这里收纳你在站内的评论、收藏和最近观看。当前版本先做最核心的个人互动能力，后续再继续补更多偏好和观看管理。
             </p>
           </div>
 
           <MeNav activeHref="/me" />
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-4 md:grid-cols-4">
           <StatCard label="我的收藏" value={summary.favoriteCount} />
           <StatCard label="我的评论" value={summary.commentCount} />
           <StatCard label="待审核评论" value={summary.pendingCommentCount} />
+          <StatCard label="最近观看" value={summary.watchHistoryCount} />
         </section>
 
         <section className="grid gap-4 lg:grid-cols-[1fr_1fr]">
@@ -49,7 +50,7 @@ export default async function MePage() {
             <div className="mt-5 space-y-4 text-sm leading-7 text-slate-300">
               <p>1. 在视频详情页收藏你想稍后再看的内容。</p>
               <p>2. 提交评论后，可在“我的评论”里查看审核状态。</p>
-              <p>3. 通过首页和搜索继续探索片库。</p>
+              <p>3. 观看视频后，可在“最近观看”里快速找回。</p>
             </div>
           </article>
         </section>

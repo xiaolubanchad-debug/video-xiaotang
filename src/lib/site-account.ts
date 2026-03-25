@@ -48,7 +48,7 @@ const favoriteVideoSelect = Prisma.validator<Prisma.VideoSelect>()({
 });
 
 export async function getViewerCenterSummary(userId: string) {
-  const [favoriteCount, commentCount, pendingCommentCount] = await prisma.$transaction([
+  const [favoriteCount, commentCount, pendingCommentCount, watchHistoryCount] = await prisma.$transaction([
     prisma.favorite.count({
       where: { userId },
     }),
@@ -61,12 +61,16 @@ export async function getViewerCenterSummary(userId: string) {
         status: CommentStatus.PENDING,
       },
     }),
+    prisma.watchHistory.count({
+      where: { userId },
+    }),
   ]);
 
   return {
     favoriteCount,
     commentCount,
     pendingCommentCount,
+    watchHistoryCount,
   };
 }
 
@@ -196,5 +200,69 @@ export async function deletePendingCommentForViewer(userId: string, commentId: s
     where: {
       id: commentId,
     },
+  });
+}
+
+export async function recordWatchHistoryForViewer(
+  userId: string,
+  videoId: string,
+  progressSeconds: number,
+) {
+  const normalizedProgress = Math.max(0, Math.floor(progressSeconds));
+
+  const existing = await prisma.watchHistory.findFirst({
+    where: {
+      userId,
+      videoId,
+    },
+    orderBy: {
+      watchedAt: "desc",
+    },
+    select: {
+      id: true,
+      progressSeconds: true,
+    },
+  });
+
+  if (existing) {
+    await prisma.watchHistory.update({
+      where: {
+        id: existing.id,
+      },
+      data: {
+        progressSeconds: Math.max(existing.progressSeconds, normalizedProgress),
+        watchedAt: new Date(),
+      },
+    });
+
+    return;
+  }
+
+  await prisma.watchHistory.create({
+    data: {
+      userId,
+      videoId,
+      progressSeconds: normalizedProgress,
+    },
+  });
+}
+
+export async function listViewerWatchHistory(userId: string) {
+  return prisma.watchHistory.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      watchedAt: "desc",
+    },
+    select: {
+      id: true,
+      progressSeconds: true,
+      watchedAt: true,
+      video: {
+        select: favoriteVideoSelect,
+      },
+    },
+    take: 20,
   });
 }
