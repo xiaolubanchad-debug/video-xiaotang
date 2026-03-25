@@ -18,4 +18,9 @@ export const adminVideoSchema = z.object({
   sourceUrl: z.string().url().optional().or(z.literal("")),
 });
 
+export const adminVideoStatusSchema = z.object({
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+});
+
 export type AdminVideoInput = z.infer<typeof adminVideoSchema>;
+export type AdminVideoStatusInput = z.infer<typeof adminVideoStatusSchema>;

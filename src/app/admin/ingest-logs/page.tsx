@@ -1,4 +1,6 @@
-﻿import { IngestAction, IngestStatus, Prisma } from "@prisma/client";
+﻿import Link from "next/link";
+
+import { IngestAction, IngestStatus, Prisma } from "@prisma/client";
 
 import { AdminShell } from "@/components/admin/admin-shell";
 import { requireSuperAdminPageSession } from "@/lib/admin-auth";
@@ -53,13 +55,37 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
     take: 100,
   });
 
+  const videoLinks = logs.length
+    ? await prisma.video.findMany({
+        where: {
+          OR: logs.map((log) => ({
+            sourceProvider: log.provider,
+            sourceExternalId: log.externalId,
+          })),
+        },
+        select: {
+          id: true,
+          title: true,
+          sourceProvider: true,
+          sourceExternalId: true,
+        },
+      })
+    : [];
+
+  const videoMap = new Map(
+    videoLinks.map((video) => [
+      `${video.sourceProvider}:${video.sourceExternalId}`,
+      video,
+    ] as const),
+  );
+
   return (
     <AdminShell
       section="ingest"
       userEmail={session.user.email}
       eyebrow="采集可观测性"
       title="OpenClaw 日志"
-      description="这里记录 upsert、batch-upsert 和 delete 的结果，方便你判断采集是否成功、哪条数据出了问题。"
+      description="这里记录 upsert、batch-upsert 和 delete 的结果。现在也可以直接从日志跳回视频库或进入对应视频编辑页，排查链路更顺了。"
     >
       <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
         <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -76,11 +102,7 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
             value={status}
             options={["", ...Object.values(IngestStatus)]}
           />
-          <Field
-            label="External ID"
-            name="externalId"
-            defaultValue={externalId}
-          />
+          <Field label="External ID" name="externalId" defaultValue={externalId} />
           <div className="flex items-end gap-3">
             <button
               type="submit"
@@ -99,49 +121,68 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
       </section>
 
       <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
-        <div className="hidden grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
+        <div className="hidden grid-cols-[0.9fr_0.8fr_0.8fr_1.2fr_1.3fr_0.9fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
           <p>Provider</p>
           <p>Action</p>
           <p>Status</p>
           <p>External ID</p>
-          <p>Error</p>
+          <p>Error / Jump</p>
           <p>Created</p>
         </div>
 
         <div className="divide-y divide-white/10">
           {logs.length === 0 ? (
-            <div className="px-6 py-10 text-sm text-slate-300">
-              当前筛选条件下没有采集日志。
-            </div>
+            <div className="px-6 py-10 text-sm text-slate-300">当前筛选条件下没有采集日志。</div>
           ) : (
-            logs.map((log) => (
-              <article
-                key={log.id}
-                className="grid grid-cols-1 gap-4 px-6 py-5 xl:grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr]"
-              >
-                <LogCell label="Provider" value={log.provider} />
-                <LogCell label="Action" value={log.action} />
-                <LogCell
-                  label="Status"
-                  value={log.responseStatus}
-                  accent={
-                    log.responseStatus === "SUCCESS"
-                      ? "text-emerald-300"
-                      : "text-rose-300"
-                  }
-                />
-                <LogCell label="External ID" value={log.externalId} />
-                <LogCell
-                  label="Error"
-                  value={log.errorMessage || "No error"}
-                  className="break-words"
-                />
-                <LogCell
-                  label="Created"
-                  value={log.createdAt.toLocaleString("zh-CN")}
-                />
-              </article>
-            ))
+            logs.map((log) => {
+              const matchedVideo = videoMap.get(`${log.provider}:${log.externalId}`);
+              const searchHref = `/admin/videos?provider=${encodeURIComponent(log.provider)}&externalId=${encodeURIComponent(log.externalId)}`;
+
+              return (
+                <article
+                  key={log.id}
+                  className="grid grid-cols-1 gap-4 px-6 py-5 xl:grid-cols-[0.9fr_0.8fr_0.8fr_1.2fr_1.3fr_0.9fr]"
+                >
+                  <LogCell label="Provider" value={log.provider} />
+                  <LogCell label="Action" value={log.action} />
+                  <LogCell
+                    label="Status"
+                    value={log.responseStatus}
+                    accent={log.responseStatus === "SUCCESS" ? "text-emerald-300" : "text-rose-300"}
+                  />
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">External ID</p>
+                    <p className="text-sm text-slate-300">{log.externalId}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {matchedVideo ? (
+                        <Link
+                          href={`/admin/videos/${matchedVideo.id}/edit`}
+                          className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
+                        >
+                          编辑视频
+                        </Link>
+                      ) : null}
+                      <Link
+                        href={searchHref}
+                        className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-white transition hover:bg-white/8"
+                      >
+                        去视频库排查
+                      </Link>
+                    </div>
+                  </div>
+                  <div className="space-y-2 break-words text-sm text-slate-300">
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">Error / Jump</p>
+                    <p>{log.errorMessage || "无错误"}</p>
+                    {matchedVideo ? (
+                      <p className="text-xs text-slate-400">已匹配视频：{matchedVideo.title}</p>
+                    ) : (
+                      <p className="text-xs text-slate-400">当前还没有匹配到视频记录。</p>
+                    )}
+                  </div>
+                  <LogCell label="Created" value={log.createdAt.toLocaleString("zh-CN")} />
+                </article>
+              );
+            })
           )}
         </div>
       </section>
@@ -204,9 +245,7 @@ type LogCellProps = {
 function LogCell({ label, value, accent, className }: LogCellProps) {
   return (
     <div className={className}>
-      <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-        {label}
-      </p>
+      <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">{label}</p>
       <p className={`text-sm text-slate-300 ${accent ?? ""}`}>{value}</p>
     </div>
   );

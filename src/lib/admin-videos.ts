@@ -263,3 +263,54 @@ export async function deleteVideoFromAdmin(videoId: string, userId: string) {
 
   return existing;
 }
+
+export async function updateVideoStatusFromAdmin(
+  videoId: string,
+  status: VideoStatus,
+  userId: string,
+) {
+  const existing = await prisma.video.findUnique({
+    where: { id: videoId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      publishedAt: true,
+    },
+  });
+
+  if (!existing) {
+    throw new Error("Video not found.");
+  }
+
+  const video = await prisma.video.update({
+    where: { id: videoId },
+    data: {
+      status,
+      publishedAt:
+        status === VideoStatus.PUBLISHED
+          ? existing.publishedAt ?? new Date()
+          : null,
+    },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      userId,
+      action: "UPDATE_STATUS",
+      module: "video",
+      targetId: video.id,
+      detail: {
+        title: existing.title,
+        fromStatus: existing.status,
+        toStatus: status,
+      },
+    },
+  });
+
+  return video;
+}

@@ -1,8 +1,16 @@
 import { NextResponse } from "next/server";
+import { VideoStatus } from "@prisma/client";
 
 import { requireSuperAdminApiSession } from "@/lib/admin-auth";
-import { deleteVideoFromAdmin, updateVideoFromAdmin } from "@/lib/admin-videos";
-import { adminVideoSchema } from "@/lib/validations/admin-video";
+import {
+  deleteVideoFromAdmin,
+  updateVideoFromAdmin,
+  updateVideoStatusFromAdmin,
+} from "@/lib/admin-videos";
+import {
+  adminVideoSchema,
+  adminVideoStatusSchema,
+} from "@/lib/validations/admin-video";
 
 type RouteContext = {
   params: Promise<{
@@ -26,6 +34,40 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({
       ok: true,
       videoId: video.id,
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown admin video error";
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: message,
+      },
+      {
+        status: message === "Unauthorized" ? 401 : 400,
+      },
+    );
+  }
+}
+
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const session = await requireSuperAdminApiSession();
+    const params = await context.params;
+    const json = await request.json();
+    const payload = adminVideoStatusSchema.parse(json);
+
+    const video = await updateVideoStatusFromAdmin(
+      params.videoId,
+      payload.status as VideoStatus,
+      session.user.id,
+    );
+
+    return NextResponse.json({
+      ok: true,
+      videoId: video.id,
+      status: video.status,
     });
   } catch (error) {
     const message =
