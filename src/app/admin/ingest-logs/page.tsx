@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { IngestAction, IngestStatus, Prisma } from "@prisma/client";
 
@@ -16,6 +16,28 @@ type Props = {
 };
 
 export const dynamic = "force-dynamic";
+
+function formatIngestStatus(status: IngestStatus) {
+  switch (status) {
+    case IngestStatus.SUCCESS:
+      return "成功";
+    case IngestStatus.FAILED:
+    default:
+      return "失败";
+  }
+}
+
+function formatIngestAction(action: IngestAction) {
+  switch (action) {
+    case IngestAction.DELETE:
+      return "删除";
+    case IngestAction.BATCH_UPSERT:
+      return "批量写入";
+    case IngestAction.UPSERT:
+    default:
+      return "写入更新";
+  }
+}
 
 export default async function AdminIngestLogsPage({ searchParams }: Props) {
   const session = await requireSuperAdminPageSession();
@@ -85,24 +107,24 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
       userEmail={session.user.email}
       eyebrow="采集可观测性"
       title="OpenClaw 日志"
-      description="这里记录 upsert、batch-upsert 和 delete 的结果。现在也可以直接从日志跳回视频库或进入对应视频编辑页，排查链路更顺了。"
+      description="这里记录 upsert、batch-upsert 和 delete 的结果，也可以直接从日志跳回视频库或进入对应视频编辑页。"
     >
       <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
         <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <Field label="Provider" name="provider" defaultValue={provider} />
+          <Field label="来源 Provider" name="provider" defaultValue={provider} />
           <SelectField
-            label="Action"
+            label="动作"
             name="action"
             value={action}
             options={["", ...Object.values(IngestAction)]}
           />
           <SelectField
-            label="Status"
+            label="结果"
             name="status"
             value={status}
             options={["", ...Object.values(IngestStatus)]}
           />
-          <Field label="External ID" name="externalId" defaultValue={externalId} />
+          <Field label="外部 ID" name="externalId" defaultValue={externalId} />
           <div className="flex items-end gap-3">
             <button
               type="submit"
@@ -122,12 +144,12 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
 
       <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
         <div className="hidden grid-cols-[0.9fr_0.8fr_0.8fr_1.2fr_1.3fr_0.9fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
-          <p>Provider</p>
-          <p>Action</p>
-          <p>Status</p>
-          <p>External ID</p>
-          <p>Error / Jump</p>
-          <p>Created</p>
+          <p>来源</p>
+          <p>动作</p>
+          <p>结果</p>
+          <p>外部 ID</p>
+          <p>错误 / 跳转</p>
+          <p>创建时间</p>
         </div>
 
         <div className="divide-y divide-white/10">
@@ -143,15 +165,15 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
                   key={log.id}
                   className="grid grid-cols-1 gap-4 px-6 py-5 xl:grid-cols-[0.9fr_0.8fr_0.8fr_1.2fr_1.3fr_0.9fr]"
                 >
-                  <LogCell label="Provider" value={log.provider} />
-                  <LogCell label="Action" value={log.action} />
+                  <LogCell label="来源" value={log.provider} />
+                  <LogCell label="动作" value={formatIngestAction(log.action)} />
                   <LogCell
-                    label="Status"
-                    value={log.responseStatus}
+                    label="结果"
+                    value={formatIngestStatus(log.responseStatus)}
                     accent={log.responseStatus === "SUCCESS" ? "text-emerald-300" : "text-rose-300"}
                   />
                   <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">External ID</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">外部 ID</p>
                     <p className="text-sm text-slate-300">{log.externalId}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {matchedVideo ? (
@@ -171,7 +193,7 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
                     </div>
                   </div>
                   <div className="space-y-2 break-words text-sm text-slate-300">
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">Error / Jump</p>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">错误 / 跳转</p>
                     <p>{log.errorMessage || "无错误"}</p>
                     {matchedVideo ? (
                       <p className="text-xs text-slate-400">已匹配视频：{matchedVideo.title}</p>
@@ -179,7 +201,7 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
                       <p className="text-xs text-slate-400">当前还没有匹配到视频记录。</p>
                     )}
                   </div>
-                  <LogCell label="Created" value={log.createdAt.toLocaleString("zh-CN")} />
+                  <LogCell label="创建时间" value={log.createdAt.toLocaleString("zh-CN")} />
                 </article>
               );
             })
@@ -227,7 +249,11 @@ function SelectField({ label, name, value, options }: SelectFieldProps) {
       >
         {options.map((option) => (
           <option key={option || "all"} value={option}>
-            {option || "ALL"}
+            {option
+              ? name === "action"
+                ? formatIngestAction(option as IngestAction)
+                : formatIngestStatus(option as IngestStatus)
+              : "全部"}
           </option>
         ))}
       </select>

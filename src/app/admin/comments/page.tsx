@@ -1,4 +1,4 @@
-import { AdminCommentsManager } from "@/components/admin/admin-comments-manager";
+﻿import { AdminCommentsManager } from "@/components/admin/admin-comments-manager";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { requireSuperAdminPageSession } from "@/lib/admin-auth";
 import { listCommentsForAdmin } from "@/lib/admin-comments";
@@ -21,9 +21,9 @@ export default async function AdminCommentsPage() {
     <AdminShell
       section="comments"
       userEmail={session.user.email}
-      eyebrow="评论审核"
+      eyebrow="评论管理"
       title="评论管理"
-      description="先把评论审核链路跑通。当前前台仍不开放评论发布，但这里已经可以查看、通过、隐藏和删除已有评论数据。"
+      description="集中查看评论状态，支持审核通过、隐藏和删除，确保前台展示的互动内容干净可控。"
     >
       <AdminCommentsManager
         comments={comments.map((comment) => ({

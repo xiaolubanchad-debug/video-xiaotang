@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 
@@ -30,6 +30,16 @@ const initialFormState: CategoryFormState = {
   sortOrder: "0",
   status: "ACTIVE",
 };
+
+function formatCategoryStatus(status: string) {
+  switch (status) {
+    case "HIDDEN":
+      return "隐藏";
+    case "ACTIVE":
+    default:
+      return "启用";
+  }
+}
 
 export function AdminCategoriesManager({ categories }: Props) {
   const [items, setItems] = useState(categories);
@@ -73,7 +83,7 @@ export function AdminCategoriesManager({ categories }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to create category.");
+      setError(result.error ?? "创建分类失败。");
       setIsCreating(false);
       return;
     }
@@ -104,7 +114,7 @@ export function AdminCategoriesManager({ categories }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to update category.");
+      setError(result.error ?? "更新分类失败。");
       return;
     }
 
@@ -122,7 +132,7 @@ export function AdminCategoriesManager({ categories }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to delete category.");
+      setError(result.error ?? "删除分类失败。");
       setPendingDeleteId(null);
       return;
     }
@@ -138,17 +148,12 @@ export function AdminCategoriesManager({ categories }: Props) {
         className="rounded-[28px] border border-white/10 bg-white/5 p-6"
       >
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-            New Category
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">
-            Create a navigation category
-          </h2>
+          <h2 className="text-2xl font-semibold text-white">新增导航分类</h2>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <Field
-            label="Category name"
+            label="分类名称"
             value={createForm.name}
             onChange={(value) =>
               setCreateForm((current) => ({ ...current, name: value }))
@@ -156,7 +161,7 @@ export function AdminCategoriesManager({ categories }: Props) {
             required
           />
           <Field
-            label="Sort order"
+            label="排序值"
             type="number"
             value={createForm.sortOrder}
             onChange={(value) =>
@@ -164,7 +169,7 @@ export function AdminCategoriesManager({ categories }: Props) {
             }
           />
           <SelectField
-            label="Status"
+            label="状态"
             value={createForm.status}
             options={["ACTIVE", "HIDDEN"]}
             onChange={(value) =>
@@ -172,7 +177,7 @@ export function AdminCategoriesManager({ categories }: Props) {
             }
           />
           <Field
-            label="Description"
+            label="分类说明"
             value={createForm.description}
             onChange={(value) =>
               setCreateForm((current) => ({ ...current, description: value }))
@@ -192,24 +197,24 @@ export function AdminCategoriesManager({ categories }: Props) {
           disabled={isCreating}
           className="mt-6 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isCreating ? "Creating..." : "Create category"}
+          {isCreating ? "创建中..." : "创建分类"}
         </button>
       </form>
 
       <section className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
         <div className="hidden grid-cols-[1.3fr_1.5fr_0.8fr_0.8fr_0.8fr_1fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
-          <p>Category</p>
-          <p>Description</p>
-          <p>Sort</p>
-          <p>Status</p>
-          <p>Videos</p>
-          <p>Actions</p>
+          <p>分类</p>
+          <p>说明</p>
+          <p>排序</p>
+          <p>状态</p>
+          <p>视频数</p>
+          <p>操作</p>
         </div>
 
         <div className="divide-y divide-white/10">
           {items.length === 0 ? (
             <div className="px-6 py-10 text-sm text-slate-300">
-              No categories yet. Create the first front-end navigation category.
+              还没有分类，可以先创建第一个前台频道分类。
             </div>
           ) : (
             items.map((item) => {
@@ -228,7 +233,7 @@ export function AdminCategoriesManager({ categories }: Props) {
                 >
                   <div className="space-y-2">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Category
+                      分类
                     </p>
                     {isEditing ? (
                       <input
@@ -244,14 +249,14 @@ export function AdminCategoriesManager({ categories }: Props) {
                     ) : (
                       <>
                         <h3 className="text-lg font-semibold text-white">{item.name}</h3>
-                        <p className="text-xs text-slate-400">Slug: {item.slug}</p>
+                        <p className="text-xs text-slate-400">Slug：{item.slug}</p>
                       </>
                     )}
                   </div>
 
                   <div>
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Description
+                      说明
                     </p>
                     {isEditing ? (
                       <textarea
@@ -270,14 +275,14 @@ export function AdminCategoriesManager({ categories }: Props) {
                       />
                     ) : (
                       <p className="text-sm leading-7 text-slate-300">
-                        {item.description || "No description yet"}
+                        {item.description || "暂未填写分类说明"}
                       </p>
                     )}
                   </div>
 
                   <div className="text-sm text-slate-300">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Sort
+                      排序
                     </p>
                     {isEditing ? (
                       <input
@@ -301,7 +306,7 @@ export function AdminCategoriesManager({ categories }: Props) {
 
                   <div className="text-sm text-slate-300">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Status
+                      状态
                     </p>
                     {isEditing ? (
                       <select
@@ -314,17 +319,19 @@ export function AdminCategoriesManager({ categories }: Props) {
                         }
                         className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none"
                       >
-                        <option value="ACTIVE">ACTIVE</option>
-                        <option value="HIDDEN">HIDDEN</option>
+                        <option value="ACTIVE">启用</option>
+                        <option value="HIDDEN">隐藏</option>
                       </select>
                     ) : (
-                      <p className="font-medium text-white">{item.status}</p>
+                      <p className="font-medium text-white">
+                        {formatCategoryStatus(item.status)}
+                      </p>
                     )}
                   </div>
 
                   <div className="text-sm text-slate-300">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Videos
+                      视频数
                     </p>
                     <p className="font-medium text-white">{item.videoCount}</p>
                     <p className="mt-2 text-xs text-slate-400">{item.updatedAtLabel}</p>
@@ -332,7 +339,7 @@ export function AdminCategoriesManager({ categories }: Props) {
 
                   <div className="flex flex-wrap items-start gap-2">
                     <p className="w-full text-xs uppercase tracking-[0.3em] text-slate-500 xl:hidden">
-                      Actions
+                      操作
                     </p>
                     {isEditing ? (
                       <>
@@ -341,14 +348,14 @@ export function AdminCategoriesManager({ categories }: Props) {
                           onClick={() => void handleUpdate(item.id)}
                           className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
                         >
-                          Save
+                          保存
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
                           className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/8"
                         >
-                          Cancel
+                          取消
                         </button>
                       </>
                     ) : (
@@ -357,7 +364,7 @@ export function AdminCategoriesManager({ categories }: Props) {
                         onClick={() => startEdit(item)}
                         className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
                       >
-                        Edit
+                        编辑
                       </button>
                     )}
                     <button
@@ -366,7 +373,7 @@ export function AdminCategoriesManager({ categories }: Props) {
                       disabled={pendingDeleteId === item.id}
                       className="rounded-full border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {pendingDeleteId === item.id ? "Deleting..." : "Delete"}
+                      {pendingDeleteId === item.id ? "删除中..." : "删除"}
                     </button>
                   </div>
                 </article>
@@ -428,7 +435,7 @@ function SelectField({ label, value, options, onChange }: SelectFieldProps) {
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {formatCategoryStatus(option)}
           </option>
         ))}
       </select>

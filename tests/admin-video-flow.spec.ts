@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+﻿import { expect, test } from "@playwright/test";
 
 test("super admin can create, edit, and delete a video", async ({ page }) => {
   const unique = Date.now();
@@ -19,23 +19,15 @@ test("super admin can create, edit, and delete a video", async ({ page }) => {
 
   await page.getByLabel("标题", { exact: true }).fill(initialTitle);
   await page.getByLabel("副标题", { exact: true }).fill("Phase 1");
-  await page
-    .getByLabel("简介")
-    .fill("Created by the automated admin workflow test.");
+  await page.getByLabel("简介").fill("Created by the automated admin workflow test.");
   await page.getByLabel("内容类型", { exact: true }).fill("series");
   await page.getByLabel("分类", { exact: true }).fill("Automation");
   await page.getByLabel("地区", { exact: true }).fill("CN");
   await page.getByLabel("语言", { exact: true }).fill("Chinese");
   await page.getByLabel("年份", { exact: true }).fill("2026");
-  await page
-    .getByLabel("时长（秒）", { exact: true })
-    .fill("1800");
-  await page
-    .getByLabel("标签（逗号分隔）")
-    .fill("automation, admin-flow");
-  await page
-    .getByLabel("播放源地址")
-    .fill("https://example.com/automation-video.m3u8");
+  await page.getByLabel("时长（秒）", { exact: true }).fill("1800");
+  await page.getByLabel("标签（逗号分隔）").fill("automation, admin-flow");
+  await page.getByLabel("播放源地址").fill("https://example.com/automation-video.m3u8");
   await page.getByRole("button", { name: "创建视频" }).click();
 
   await expect(page).toHaveURL(/\/admin\/videos$/);
@@ -46,9 +38,7 @@ test("super admin can create, edit, and delete a video", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/edit$/);
   await page.getByLabel("标题", { exact: true }).fill(updatedTitle);
-  await page
-    .getByLabel("简介")
-    .fill("Updated by the automated admin workflow test.");
+  await page.getByLabel("简介").fill("Updated by the automated admin workflow test.");
   await page.getByRole("button", { name: "保存修改" }).click();
 
   await expect(page).toHaveURL(/\/admin\/videos$/);
@@ -59,10 +49,7 @@ test("super admin can create, edit, and delete a video", async ({ page }) => {
     fullPage: true,
   });
 
-  const updatedRow = page
-    .locator("article")
-    .filter({ hasText: updatedTitle })
-    .first();
+  const updatedRow = page.locator("article").filter({ hasText: updatedTitle }).first();
 
   page.once("dialog", (dialog) => dialog.accept());
   await updatedRow.getByRole("button", { name: "删除" }).click();

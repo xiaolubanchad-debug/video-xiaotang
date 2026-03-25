@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { CommentStatus } from "@prisma/client";
@@ -106,7 +106,7 @@ export function AdminCommentsManager({ comments }: Props) {
       <section className="space-y-4">
         {items.length === 0 ? (
           <div className="rounded-[28px] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-sm leading-7 text-slate-300">
-            当前还没有评论数据。等后续接入前台发布后，这里会显示需要审核或已经展示的评论。
+            当前还没有评论数据。等前台用户开始发表评论后，这里会出现需要审核或已经展示的评论。
           </div>
         ) : (
           items.map((item) => {
@@ -135,7 +135,7 @@ export function AdminCommentsManager({ comments }: Props) {
                       </Link>
                     </p>
                     <p className="text-xs text-slate-400">
-                      创建于 {item.createdAtLabel} · 最近更新 {item.updatedAtLabel}
+                      创建于 {item.createdAtLabel} / 最近更新 {item.updatedAtLabel}
                     </p>
                   </div>
 
@@ -200,7 +200,7 @@ export function AdminCommentsManager({ comments }: Props) {
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <article className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-      <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">{label}</p>
+      <p className="text-sm font-medium text-cyan-100/80">{label}</p>
       <p className="mt-4 text-4xl font-semibold text-white">{value}</p>
     </article>
   );

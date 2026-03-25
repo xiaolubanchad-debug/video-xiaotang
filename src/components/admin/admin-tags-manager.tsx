@@ -60,7 +60,7 @@ export function AdminTagsManager({ tags }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to create tag.");
+      setError(result.error ?? "创建标签失败。");
       setIsCreating(false);
       return;
     }
@@ -86,7 +86,7 @@ export function AdminTagsManager({ tags }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to update tag.");
+      setError(result.error ?? "更新标签失败。");
       return;
     }
 
@@ -104,7 +104,7 @@ export function AdminTagsManager({ tags }: Props) {
     const result = (await response.json()) as { ok: boolean; error?: string };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to delete tag.");
+      setError(result.error ?? "删除标签失败。");
       setPendingDeleteId(null);
       return;
     }
@@ -120,17 +120,12 @@ export function AdminTagsManager({ tags }: Props) {
         className="rounded-[28px] border border-white/10 bg-white/5 p-6"
       >
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-            New Tag
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">
-            Create a reusable content tag
-          </h2>
+          <h2 className="text-2xl font-semibold text-white">新增可复用标签</h2>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Field
-            label="Tag name"
+            label="标签名称"
             value={createForm.name}
             onChange={(value) =>
               setCreateForm((current) => ({ ...current, name: value }))
@@ -138,7 +133,7 @@ export function AdminTagsManager({ tags }: Props) {
             required
           />
           <Field
-            label="Color"
+            label="标签颜色"
             value={createForm.color}
             onChange={(value) =>
               setCreateForm((current) => ({ ...current, color: value }))
@@ -158,22 +153,22 @@ export function AdminTagsManager({ tags }: Props) {
           disabled={isCreating}
           className="mt-6 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isCreating ? "Creating..." : "Create tag"}
+          {isCreating ? "创建中..." : "创建标签"}
         </button>
       </form>
 
       <section className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
         <div className="hidden grid-cols-[1.4fr_1fr_0.8fr_1fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 lg:grid">
-          <p>Tag</p>
-          <p>Color</p>
-          <p>Videos</p>
-          <p>Actions</p>
+          <p>标签</p>
+          <p>颜色</p>
+          <p>视频数</p>
+          <p>操作</p>
         </div>
 
         <div className="divide-y divide-white/10">
           {items.length === 0 ? (
             <div className="px-6 py-10 text-sm text-slate-300">
-              No tags yet. Create reusable labels for search and curation.
+              还没有标签，可以先创建搜索和运营会用到的内容标签。
             </div>
           ) : (
             items.map((item) => {
@@ -190,7 +185,7 @@ export function AdminTagsManager({ tags }: Props) {
                 >
                   <div className="space-y-2">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 lg:hidden">
-                      Tag
+                      标签
                     </p>
                     {isEditing ? (
                       <input
@@ -214,14 +209,14 @@ export function AdminTagsManager({ tags }: Props) {
                             {item.name}
                           </h3>
                         </div>
-                        <p className="text-xs text-slate-400">Slug: {item.slug}</p>
+                        <p className="text-xs text-slate-400">Slug：{item.slug}</p>
                       </>
                     )}
                   </div>
 
                   <div className="text-sm text-slate-300">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 lg:hidden">
-                      Color
+                      颜色
                     </p>
                     {isEditing ? (
                       <input
@@ -237,14 +232,14 @@ export function AdminTagsManager({ tags }: Props) {
                       />
                     ) : (
                       <p className="font-medium text-white">
-                        {item.color || "Default slate"}
+                        {item.color || "默认灰蓝色"}
                       </p>
                     )}
                   </div>
 
                   <div className="text-sm text-slate-300">
                     <p className="text-xs uppercase tracking-[0.3em] text-slate-500 lg:hidden">
-                      Videos
+                      视频数
                     </p>
                     <p className="font-medium text-white">{item.videoCount}</p>
                     <p className="mt-2 text-xs text-slate-400">{item.updatedAtLabel}</p>
@@ -252,7 +247,7 @@ export function AdminTagsManager({ tags }: Props) {
 
                   <div className="flex flex-wrap items-start gap-2">
                     <p className="w-full text-xs uppercase tracking-[0.3em] text-slate-500 lg:hidden">
-                      Actions
+                      操作
                     </p>
                     {isEditing ? (
                       <>
@@ -261,14 +256,14 @@ export function AdminTagsManager({ tags }: Props) {
                           onClick={() => void handleUpdate(item.id)}
                           className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
                         >
-                          Save
+                          保存
                         </button>
                         <button
                           type="button"
                           onClick={() => setEditingId(null)}
                           className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/8"
                         >
-                          Cancel
+                          取消
                         </button>
                       </>
                     ) : (
@@ -277,7 +272,7 @@ export function AdminTagsManager({ tags }: Props) {
                         onClick={() => startEdit(item)}
                         className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-xs font-semibold text-cyan-100 transition hover:bg-cyan-300/20"
                       >
-                        Edit
+                        编辑
                       </button>
                     )}
                     <button
@@ -286,7 +281,7 @@ export function AdminTagsManager({ tags }: Props) {
                       disabled={pendingDeleteId === item.id}
                       className="rounded-full border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-70"
                     >
-                      {pendingDeleteId === item.id ? "Deleting..." : "Delete"}
+                      {pendingDeleteId === item.id ? "删除中..." : "删除"}
                     </button>
                   </div>
                 </article>

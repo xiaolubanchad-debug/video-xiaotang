@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { getViewerSession } from "@/lib/auth";
 import { homePageSectionDefinitions } from "@/lib/home-sections";
@@ -62,10 +62,6 @@ export async function HomePage() {
 
             <div className="relative flex min-h-[620px] flex-col justify-end px-7 py-10 sm:px-10 lg:min-h-[680px] lg:px-12">
               <div className="max-w-3xl space-y-6 pb-12 lg:pb-28">
-                <span className="inline-flex rounded-full border border-[#b8c4ff]/16 bg-[#b8c4ff]/10 px-4 py-2 text-xs font-semibold tracking-[0.32em] text-[#dde1ff]">
-                  {featuredBanner ? "HERO BANNER" : "PREMIUM STREAMING"}
-                </span>
-
                 <div className="space-y-4">
                   <h1 className="font-serif text-4xl font-semibold leading-none tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
                     {heroTitle}
@@ -154,8 +150,7 @@ export async function HomePage() {
           </section>
         ) : (
           <section className="rounded-[34px] border border-dashed border-white/10 bg-white/[0.03] px-6 py-16 text-center">
-            <p className="text-xs tracking-[0.4em] text-[#b8c4ff]/70">片库为空</p>
-            <h1 className="mt-4 font-serif text-5xl text-white">还没有已发布内容</h1>
+            <h1 className="font-serif text-5xl text-white">还没有已发布内容</h1>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-[#b8b6bf]">
               你可以先通过 OpenClaw 的采集接口推送第一条视频，或者从后台手动新增内容并发布。
             </p>
@@ -210,4 +205,3 @@ export async function HomePage() {
     </SiteShell>
   );
 }
-

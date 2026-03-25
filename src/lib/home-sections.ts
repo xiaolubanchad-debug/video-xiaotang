@@ -5,13 +5,13 @@ export const manualHomeSectionDefinitions = [
     key: "hot",
     slug: "home-hot-recommend",
     title: "热门推荐",
-    description: "后台手工编排的热门内容区块。",
+    description: "后台手工编排的首页主推区块。",
   },
   {
     key: "editor",
     slug: "home-editor-picks",
     title: "站长精选",
-    description: "站长手工挑选的精选内容区块。",
+    description: "由站长挑选并维护的精选内容区块。",
   },
 ] as const;
 
@@ -34,7 +34,7 @@ export const homePageSectionDefinitions = [
   {
     key: "guess",
     title: "猜你喜欢",
-    description: "刷新页面随机换一批",
+    description: "刷新页面后随机换一批",
   },
 ] as const;
 

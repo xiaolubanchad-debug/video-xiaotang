@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { MeNav } from "@/components/site/me-nav";
 import { SiteShell } from "@/components/site/site-shell";
@@ -28,7 +28,6 @@ export default async function MyHistoryPage() {
       <div className="space-y-8">
         <section className="space-y-6 rounded-[30px] border border-white/6 bg-[#151515] px-6 py-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)] sm:px-8">
           <div className="space-y-4">
-            <p className="text-xs tracking-[0.35em] text-[#8f8d97]">我的中心</p>
             <h1 className="font-serif text-5xl text-white sm:text-6xl">最近观看</h1>
             <p className="max-w-3xl text-base leading-8 text-[#b6b4bc]">
               这里会记录你最近播放过的视频和大致观看进度。当前版本只记录历史，不自动从断点续播。

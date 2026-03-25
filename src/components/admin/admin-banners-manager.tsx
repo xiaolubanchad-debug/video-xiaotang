@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { BannerStatus } from "@prisma/client";
 import { useState } from "react";
@@ -50,6 +50,30 @@ const initialFormState: BannerFormState = {
   startAt: "",
   endAt: "",
 };
+
+function formatBannerStatus(status: BannerStatus) {
+  switch (status) {
+    case BannerStatus.ACTIVE:
+      return "启用中";
+    case BannerStatus.EXPIRED:
+      return "已过期";
+    case BannerStatus.DRAFT:
+    default:
+      return "草稿";
+  }
+}
+
+function formatVideoStatus(status: string) {
+  switch (status) {
+    case "PUBLISHED":
+      return "已发布";
+    case "ARCHIVED":
+      return "已归档";
+    case "DRAFT":
+    default:
+      return "草稿";
+  }
+}
 
 export function AdminBannersManager({ banners, videoOptions }: Props) {
   const [items, setItems] = useState(banners);
@@ -183,12 +207,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
         className="rounded-[28px] border border-white/10 bg-white/5 p-6"
       >
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-            New Banner
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white">
-            创建首页主视觉 Banner
-          </h2>
+          <h2 className="text-2xl font-semibold text-white">创建首页主视觉 Banner</h2>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -223,7 +242,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
               { value: "", label: "不关联视频" },
               ...videoOptions.map((video) => ({
                 value: video.id,
-                label: `${video.title} · ${video.status}`,
+                label: `${video.title} · ${formatVideoStatus(video.status)}`,
               })),
             ]}
             onChange={(value) => updateCreateField("videoId", value)}
@@ -233,7 +252,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
             value={createForm.status}
             options={Object.values(BannerStatus).map((status) => ({
               value: status,
-              label: status,
+              label: formatBannerStatus(status),
             }))}
             onChange={(value) =>
               updateCreateField("status", value as BannerStatus)
@@ -281,7 +300,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
         <div className="divide-y divide-white/10">
           {items.length === 0 ? (
             <div className="px-6 py-10 text-sm text-slate-300">
-              还没有首页 Banner。创建后首页将优先展示已生效的 Banner。
+              还没有首页 Banner。创建后首页会优先展示已生效的 Banner。
             </div>
           ) : (
             items.map((item) => {
@@ -317,7 +336,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
                     ) : (
                       <>
                         <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                        <p className="text-xs break-all text-slate-400">{item.imageUrl}</p>
+                        <p className="break-all text-xs text-slate-400">{item.imageUrl}</p>
                       </>
                     )}
                   </div>
@@ -338,7 +357,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
                           <option value="">不关联视频</option>
                           {videoOptions.map((video) => (
                             <option key={video.id} value={video.id}>
-                              {video.title} · {video.status}
+                              {video.title} · {formatVideoStatus(video.status)}
                             </option>
                           ))}
                         </select>
@@ -380,7 +399,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
                         >
                           {Object.values(BannerStatus).map((status) => (
                             <option key={status} value={status}>
-                              {status}
+                              {formatBannerStatus(status)}
                             </option>
                           ))}
                         </select>
@@ -395,7 +414,9 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
                       </>
                     ) : (
                       <>
-                        <p className="font-medium text-white">{item.status}</p>
+                        <p className="font-medium text-white">
+                          {formatBannerStatus(item.status)}
+                        </p>
                         <p className="text-slate-400">排序：{item.sortOrder}</p>
                       </>
                     )}

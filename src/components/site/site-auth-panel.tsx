@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -54,7 +54,11 @@ export function SiteAuthPanel() {
     });
 
     if (result?.error) {
-      setError(mode === "register" ? "注册成功，但自动登录失败，请直接登录。" : "登录失败，请检查邮箱和密码。");
+      setError(
+        mode === "register"
+          ? "注册成功，但自动登录失败，请直接登录。"
+          : "登录失败，请检查邮箱和密码。",
+      );
       setIsSubmitting(false);
       return;
     }
@@ -90,14 +94,11 @@ export function SiteAuthPanel() {
       </div>
 
       <div className="mt-6 space-y-3">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">
-          {mode === "login" ? "站点登录" : "创建观影账号"}
-        </p>
-        <h1 className="font-[family-name:var(--font-cormorant)] text-4xl text-white">
-          {mode === "login" ? "登录后可以发表评论" : "先注册，再参与评论互动"}
-        </h1>
+        <h2 className="font-[family-name:var(--font-cormorant)] text-4xl text-white">
+          {mode === "login" ? "登录后可继续互动" : "先注册，再参与讨论"}
+        </h2>
         <p className="text-sm leading-7 text-slate-300">
-          当前版本先开放用户登录和评论发布。评论提交后会进入后台审核，通过后才会展示在前台详情页。
+          评论提交后会进入后台审核，审核通过后才会展示在前台详情页。收藏和最近观看会直接同步到你的个人中心。
         </p>
       </div>
 
@@ -167,10 +168,16 @@ export function SiteAuthPanel() {
       </form>
 
       <div className="mt-6 rounded-[24px] border border-white/8 bg-white/[0.03] p-5 text-sm leading-7 text-slate-300">
-        <p>站内规则：</p>
+        <p>使用说明：</p>
         <p>1. 评论提交后默认进入待审核状态。</p>
-        <p>2. 管理员通过后，评论会展示在视频详情页。</p>
-        <p>3. 如果你是管理员，也可以直接从 <Link href="/admin/login" className="text-cyan-200 hover:text-cyan-100">后台登录页</Link> 进入 CMS。</p>
+        <p>2. 管理员审核通过后，评论才会展示在前台详情页。</p>
+        <p>
+          3. 如果你是管理员，也可以直接从{" "}
+          <Link href="/admin/login" className="text-cyan-200 hover:text-cyan-100">
+            后台登录页
+          </Link>
+          进入 CMS。
+        </p>
       </div>
     </div>
   );

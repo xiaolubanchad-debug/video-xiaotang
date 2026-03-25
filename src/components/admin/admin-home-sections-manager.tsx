@@ -34,11 +34,28 @@ type Props = {
   videos: VideoOption[];
 };
 
+function formatVideoStatus(status: string) {
+  switch (status) {
+    case "PUBLISHED":
+      return "已发布";
+    case "ARCHIVED":
+      return "已归档";
+    case "DRAFT":
+    default:
+      return "草稿";
+  }
+}
+
 export function AdminHomeSectionsManager({ sections, videos }: Props) {
   const [draft, setDraft] = useState({
-    hotVideoIds: sections.find((section) => section.key === "hot")?.items.map((item) => item.id) ?? [],
+    hotVideoIds:
+      sections
+        .find((section) => section.key === "hot")
+        ?.items.map((item) => item.id) ?? [],
     editorVideoIds:
-      sections.find((section) => section.key === "editor")?.items.map((item) => item.id) ?? [],
+      sections
+        .find((section) => section.key === "editor")
+        ?.items.map((item) => item.id) ?? [],
   });
   const [picker, setPicker] = useState<Record<ManualHomeSectionKey, string>>({
     hot: "",
@@ -159,15 +176,9 @@ export function AdminHomeSectionsManager({ sections, videos }: Props) {
       <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-              Home Sections
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold text-white">
-              管理首页手工区块
-            </h2>
+            <h2 className="text-2xl font-semibold text-white">管理首页手工区块</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-              首页固定 4 个内容区块，其中“热门推荐”和“站长精选”由后台手工编排。
-              “最新更新”自动按发布时间倒序生成，“猜你喜欢”每次刷新随机取 8 个不重复视频。
+              首页固定 4 个内容区块，其中“热门推荐”和“站长精选”由后台手工编排。“最新更新”按发布时间倒序展示，“猜你喜欢”每次刷新随机返回 8 个不重复视频。
             </p>
           </div>
 
@@ -228,7 +239,7 @@ export function AdminHomeSectionsManager({ sections, videos }: Props) {
                   <option value="">选择一个已发布视频加入区块</option>
                   {availableVideos.map((video) => (
                     <option key={video.id} value={video.id}>
-                      {video.title} · {video.status}
+                      {video.title} · {formatVideoStatus(video.status)}
                     </option>
                   ))}
                 </select>

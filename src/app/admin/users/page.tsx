@@ -1,6 +1,4 @@
-import Link from "next/link";
-
-import { AdminShell } from "@/components/admin/admin-shell";
+﻿import { AdminShell } from "@/components/admin/admin-shell";
 import { AdminUserDeleteButton } from "@/components/admin/admin-user-delete-button";
 import { requireSuperAdminPageSession } from "@/lib/admin-auth";
 import { listUsersForAdmin } from "@/lib/admin-users";
@@ -22,7 +20,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
     <AdminShell
       section="users"
       userEmail={session.user.email}
-      eyebrow="用户治理"
+      eyebrow="用户管理"
       title="用户管理"
       description="按邮箱检索普通用户，并在需要时直接删除该用户及其评论、收藏、最近观看和搜索记录。"
     >
@@ -50,12 +48,12 @@ export default async function AdminUsersPage({ searchParams }: Props) {
             >
               搜索用户
             </button>
-            <Link
+            <a
               href="/admin/users"
               className="inline-flex h-12 items-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/8"
             >
               清空筛选
-            </Link>
+            </a>
           </div>
         </form>
       </section>
@@ -116,7 +114,7 @@ export default async function AdminUsersPage({ searchParams }: Props) {
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <article className="rounded-[24px] border border-white/10 bg-white/5 p-5">
-      <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">{label}</p>
+      <p className="text-sm font-medium text-cyan-100/80">{label}</p>
       <p className="mt-4 text-4xl font-semibold text-white">{value}</p>
     </article>
   );

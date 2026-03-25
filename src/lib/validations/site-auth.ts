@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 
 export const siteRegisterSchema = z.object({
   email: z.string().trim().email("请输入正确的邮箱地址。"),

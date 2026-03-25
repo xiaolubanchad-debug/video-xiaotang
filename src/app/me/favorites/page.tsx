@@ -1,4 +1,4 @@
-import { MeNav } from "@/components/site/me-nav";
+﻿import { MeNav } from "@/components/site/me-nav";
 import { SiteShell } from "@/components/site/site-shell";
 import { VideoCard } from "@/components/site/video-card";
 import { requireViewerPageSession } from "@/lib/auth";
@@ -18,10 +18,9 @@ export default async function MyFavoritesPage() {
       <div className="space-y-8">
         <section className="space-y-6 rounded-[30px] border border-white/6 bg-[#151515] px-6 py-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)] sm:px-8">
           <div className="space-y-4">
-            <p className="text-xs tracking-[0.35em] text-[#8f8d97]">我的中心</p>
             <h1 className="font-serif text-5xl text-white sm:text-6xl">我的收藏</h1>
             <p className="max-w-3xl text-base leading-8 text-[#b6b4bc]">
-              当前共收藏了 {summary.favoriteCount} 部视频。第一版先支持在详情页进行收藏和取消收藏。
+              当前共收藏了 {summary.favoriteCount} 部视频。你可以在详情页继续收藏或取消收藏，这里会同步更新。
             </p>
           </div>
 
