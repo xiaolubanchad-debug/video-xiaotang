@@ -1,9 +1,10 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { ReactNode } from "react";
 
 type AdminSection =
   | "dashboard"
   | "videos"
+  | "homeSections"
   | "categories"
   | "tags"
   | "banners"
@@ -28,7 +29,7 @@ const navItems: Array<{
   {
     section: "dashboard",
     label: "控制台",
-    description: "后台概览与快捷入口",
+    description: "后台总览与快捷入口",
     href: "/admin",
   },
   {
@@ -36,6 +37,18 @@ const navItems: Array<{
     label: "视频管理",
     description: "维护视频资料、状态与来源",
     href: "/admin/videos",
+  },
+  {
+    section: "homeSections",
+    label: "首页内容区块",
+    description: "维护热门推荐和站长精选",
+    href: "/admin/home-sections",
+  },
+  {
+    section: "banners",
+    label: "首页 Banner",
+    description: "管理首页主视觉与跳转入口",
+    href: "/admin/banners",
   },
   {
     section: "categories",
@@ -48,12 +61,6 @@ const navItems: Array<{
     label: "标签管理",
     description: "维护搜索和内容发现标签",
     href: "/admin/tags",
-  },
-  {
-    section: "banners",
-    label: "首页推荐位",
-    description: "管理首页主视觉和跳转入口",
-    href: "/admin/banners",
   },
   {
     section: "ingest",
@@ -84,8 +91,7 @@ export function AdminShell({
               CMS 后台
             </h1>
             <p className="mt-4 text-sm leading-7 text-slate-300">
-              单超级管理员运营台，围绕视频库、首页编排和 OpenClaw
-              采集链路搭建。
+              单超级管理员运营台，围绕视频库、首页编排和 OpenClaw 采集链路搭建。
             </p>
           </div>
 

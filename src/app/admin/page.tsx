@@ -22,6 +22,12 @@ export default async function AdminPage() {
             新增视频
           </Link>
           <Link
+            href="/admin/home-sections"
+            className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
+          >
+            首页区块
+          </Link>
+          <Link
             href="/admin/banners"
             className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
           >
@@ -48,6 +54,11 @@ export default async function AdminPage() {
             "/admin/banners",
           ],
           [
+            "首页内容区块",
+            "维护热门推荐和站长精选两个手工编排区块，最新更新与猜你喜欢由前台自动生成。",
+            "/admin/home-sections",
+          ],
+          [
             "采集日志",
             "追踪 upsert、batch-upsert 和 delete 的结果，快速定位 OpenClaw 推送异常。",
             "/admin/ingest-logs",
@@ -56,11 +67,6 @@ export default async function AdminPage() {
             "标签管理",
             "让搜索和推荐逻辑围绕统一的标签体系运转，减少重复词和脏数据。",
             "/admin/tags",
-          ],
-          [
-            "站点回看",
-            "从运营后台随时返回前台站点，检查首页 Banner、分类和详情展示是否正确。",
-            "/",
           ],
         ].map(([title, text, href]) => (
           <article

@@ -1,5 +1,6 @@
 ﻿import { BannerStatus, Prisma, VideoStatus } from "@prisma/client";
 
+import { HOME_SECTION_MAX_ITEMS } from "@/lib/home-sections";
 import { prisma } from "@/lib/prisma";
 
 const cardVideoSelect = Prisma.validator<Prisma.VideoSelect>()({
@@ -88,75 +89,210 @@ export async function getSiteNavigationCategories() {
 export async function getHomePageData() {
   const now = new Date();
 
-  const [heroBanners, heroVideos, latestVideos, spotlightVideos, categoryRows] =
-    await Promise.all([
-      prisma.banner.findMany({
-        where: {
-          status: BannerStatus.ACTIVE,
-          OR: [{ startAt: null }, { startAt: { lte: now } }],
-          AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
+  const [heroBanners, heroVideos, manualCollections] = await Promise.all([
+    prisma.banner.findMany({
+      where: {
+        status: BannerStatus.ACTIVE,
+        OR: [{ startAt: null }, { startAt: { lte: now } }],
+        AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
+      },
+      orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
+      select: heroBannerSelect,
+      take: 3,
+    }),
+    prisma.video.findMany({
+      where: {
+        status: VideoStatus.PUBLISHED,
+      },
+      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+      select: cardVideoSelect,
+      take: HOME_SECTION_MAX_ITEMS,
+    }),
+    prisma.collection.findMany({
+      where: {
+        slug: {
+          in: ["home-hot-recommend", "home-editor-picks"],
         },
-        orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
-        select: heroBannerSelect,
-        take: 3,
-      }),
-      prisma.video.findMany({
-        where: {
-          status: VideoStatus.PUBLISHED,
-        },
-        orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
-        select: cardVideoSelect,
-        take: 4,
-      }),
-      prisma.video.findMany({
-        where: {
-          status: VideoStatus.PUBLISHED,
-        },
-        orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
-        select: cardVideoSelect,
-        take: 8,
-      }),
-      prisma.video.findMany({
-        where: {
-          status: VideoStatus.PUBLISHED,
-        },
-        orderBy: [{ updatedAt: "desc" }, { publishedAt: "desc" }],
-        select: cardVideoSelect,
-        take: 8,
-      }),
-      prisma.category.findMany({
-        where: {
-          videos: {
-            some: {
-              status: VideoStatus.PUBLISHED,
+      },
+      select: {
+        slug: true,
+        items: {
+          orderBy: {
+            sortOrder: "asc",
+          },
+          include: {
+            video: {
+              select: cardVideoSelect,
             },
           },
+          take: HOME_SECTION_MAX_ITEMS,
         },
-        orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          videos: {
-            where: {
-              status: VideoStatus.PUBLISHED,
-            },
-            orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
-            select: cardVideoSelect,
-            take: 6,
-          },
-        },
-        take: 3,
-      }),
-    ]);
+      },
+    }),
+  ]);
+
+  const hotCollection = manualCollections.find(
+    (collection) => collection.slug === "home-hot-recommend",
+  );
+  const editorCollection = manualCollections.find(
+    (collection) => collection.slug === "home-editor-picks",
+  );
+
+  const hotPicks = await fillSectionVideos(
+    hotCollection?.items.map((item) => item.video) ?? [],
+    new Set<string>(),
+  );
+  const usedIdsAfterHot = new Set(hotPicks.map((video) => video.id));
+
+  const latestUpdates = await prisma.video.findMany({
+    where: {
+      status: VideoStatus.PUBLISHED,
+      id: {
+        notIn: [...usedIdsAfterHot],
+      },
+    },
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+    select: cardVideoSelect,
+    take: HOME_SECTION_MAX_ITEMS,
+  });
+
+  const usedIdsAfterLatest = new Set([
+    ...usedIdsAfterHot,
+    ...latestUpdates.map((video) => video.id),
+  ]);
+
+  const editorPicks = await fillSectionVideos(
+    editorCollection?.items.map((item) => item.video) ?? [],
+    usedIdsAfterLatest,
+  );
+
+  const usedIdsAfterEditor = new Set([
+    ...usedIdsAfterLatest,
+    ...editorPicks.map((video) => video.id),
+  ]);
+
+  const guessYouLike = await getRandomSectionVideos(usedIdsAfterEditor);
 
   return {
     heroBanners,
     heroVideos,
-    latestVideos,
-    spotlightVideos,
-    categoryRows: categoryRows.filter((row) => row.videos.length > 0),
+    sections: {
+      hotPicks,
+      latestUpdates,
+      editorPicks,
+      guessYouLike,
+    },
   };
+}
+
+async function fillSectionVideos(
+  preferredVideos: SiteVideoCard[],
+  blockedIds: Set<string>,
+) {
+  const picked: SiteVideoCard[] = [];
+  const seenIds = new Set(blockedIds);
+
+  for (const video of preferredVideos) {
+    if (seenIds.has(video.id)) {
+      continue;
+    }
+
+    picked.push(video);
+    seenIds.add(video.id);
+
+    if (picked.length === HOME_SECTION_MAX_ITEMS) {
+      return picked;
+    }
+  }
+
+  if (picked.length < HOME_SECTION_MAX_ITEMS) {
+    const fallbackVideos = await prisma.video.findMany({
+      where: {
+        status: VideoStatus.PUBLISHED,
+        id: {
+          notIn: [...seenIds],
+        },
+      },
+      orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+      select: cardVideoSelect,
+      take: HOME_SECTION_MAX_ITEMS - picked.length,
+    });
+
+    picked.push(...fallbackVideos);
+  }
+
+  return picked;
+}
+
+async function getRandomSectionVideos(blockedIds: Set<string>) {
+  const candidateIds = await prisma.video.findMany({
+    where: {
+      status: VideoStatus.PUBLISHED,
+      id: {
+        notIn: [...blockedIds],
+      },
+    },
+    select: {
+      id: true,
+    },
+    take: 200,
+  });
+
+  const selectedIds = shuffle(candidateIds.map((video) => video.id)).slice(
+    0,
+    HOME_SECTION_MAX_ITEMS,
+  );
+
+  if (selectedIds.length === 0) {
+    return [];
+  }
+
+  const selectedVideos = await prisma.video.findMany({
+    where: {
+      id: {
+        in: selectedIds,
+      },
+    },
+    select: cardVideoSelect,
+  });
+
+  const selectedVideoMap = new Map(
+    selectedVideos.map((video) => [video.id, video] as const),
+  );
+
+  const orderedVideos = selectedIds
+    .map((id) => selectedVideoMap.get(id))
+    .filter(Boolean) as SiteVideoCard[];
+
+  if (orderedVideos.length === HOME_SECTION_MAX_ITEMS) {
+    return orderedVideos;
+  }
+
+  const alreadyPickedIds = new Set(orderedVideos.map((video) => video.id));
+  const fallbackVideos = await prisma.video.findMany({
+    where: {
+      status: VideoStatus.PUBLISHED,
+      id: {
+        notIn: [...alreadyPickedIds],
+      },
+    },
+    orderBy: [{ updatedAt: "desc" }, { publishedAt: "desc" }],
+    select: cardVideoSelect,
+    take: HOME_SECTION_MAX_ITEMS - orderedVideos.length,
+  });
+
+  return [...orderedVideos, ...fallbackVideos].slice(0, HOME_SECTION_MAX_ITEMS);
+}
+
+function shuffle<T>(items: T[]) {
+  const next = [...items];
+
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[swapIndex]] = [next[swapIndex], next[index]];
+  }
+
+  return next;
 }
 
 export async function getCategoryPageData(slug: string) {

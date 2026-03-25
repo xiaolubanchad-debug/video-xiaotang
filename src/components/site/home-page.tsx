@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 
+import { homePageSectionDefinitions } from "@/lib/home-sections";
 import { getHomePageData, getSiteNavigationCategories } from "@/lib/site-videos";
 import {
   formatCompactDuration,
@@ -18,10 +19,6 @@ export async function HomePage() {
 
   const featuredBanner = data.heroBanners[0];
   const lead = featuredBanner?.video ?? data.heroVideos[0];
-  const categoryRows = data.categoryRows.slice(0, 2);
-  const hotVideos = data.latestVideos.slice(0, 4);
-  const spotlightVideos = data.spotlightVideos.slice(0, 4);
-  const freshVideos = data.latestVideos.slice(4, 8);
   const heroBackground =
     featuredBanner?.imageUrl ?? lead?.coverUrl ?? lead?.posterUrl ?? undefined;
   const heroTitle = featuredBanner?.title ?? lead?.title ?? "今日精选";
@@ -34,6 +31,13 @@ export async function HomePage() {
     : featuredBanner?.targetUrl ?? (lead ? `/videos/${lead.slug}` : "/search");
   const heroPrimaryLabel = featuredBanner?.video || lead ? "立即观看" : "查看专题";
   const isExternalHeroLink = /^https?:\/\//.test(heroPrimaryHref);
+
+  const sectionData = {
+    hot: data.sections.hotPicks,
+    latest: data.sections.latestUpdates,
+    editor: data.sections.editorPicks,
+    guess: data.sections.guessYouLike,
+  };
 
   return (
     <SiteShell categories={categories} activeNav="home">
@@ -170,76 +174,36 @@ export async function HomePage() {
           </section>
         )}
 
-        <section className="space-y-6">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs tracking-[0.35em] text-[#8e8c96]">正在热播</p>
-              <h2 className="mt-3 font-serif text-4xl text-white">最新上映与更新</h2>
-            </div>
-            <Link href="/search" className="text-sm font-semibold text-[#b8c4ff] transition hover:underline">
-              查看全部
-            </Link>
-          </div>
+        {homePageSectionDefinitions.map((section) => {
+          const videos = sectionData[section.key];
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {hotVideos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <div>
-            <p className="text-xs tracking-[0.35em] text-[#8e8c96]">本周热门推荐</p>
-            <h2 className="mt-3 font-serif text-4xl text-white">编辑精选片单</h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {spotlightVideos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
-        </section>
-
-        {categoryRows.length > 0 ? (
-          <section className="grid gap-8 xl:grid-cols-2">
-            {categoryRows.map((row) => (
-              <div key={row.id} className="space-y-6">
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs tracking-[0.35em] text-[#8e8c96]">专题推荐</p>
-                    <h2 className="mt-3 font-serif text-4xl text-white">{row.name}</h2>
-                  </div>
-                  <Link
-                    href={`/category/${row.slug}`}
-                    className="text-sm font-semibold text-[#b8c4ff] transition hover:underline"
-                  >
+          return (
+            <section key={section.key} className="space-y-6">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <h2 className="font-serif text-4xl text-white">{section.title}</h2>
+                </div>
+                {section.key === "latest" ? (
+                  <Link href="/search" className="text-sm font-semibold text-[#b8c4ff] transition hover:underline">
                     查看全部
                   </Link>
-                </div>
+                ) : null}
+              </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {row.videos.slice(0, 4).map((video) => (
+              {videos.length > 0 ? (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  {videos.map((video) => (
                     <VideoCard key={video.id} video={video} />
                   ))}
                 </div>
-              </div>
-            ))}
-          </section>
-        ) : null}
-
-        <section className="space-y-6">
-          <div>
-            <p className="text-xs tracking-[0.35em] text-[#8e8c96]">最新上新</p>
-            <h2 className="mt-3 font-serif text-4xl text-white">刚刚进入片库的内容</h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {freshVideos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))}
-          </div>
-        </section>
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-sm text-slate-300">
+                  当前区块暂时没有可展示内容。
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
     </SiteShell>
   );

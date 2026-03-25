@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { BannerStatus } from "@prisma/client";
 import { useState } from "react";
@@ -317,9 +317,7 @@ export function AdminBannersManager({ banners, videoOptions }: Props) {
                     ) : (
                       <>
                         <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                        <p className="text-xs break-all text-slate-400">
-                          {item.imageUrl}
-                        </p>
+                        <p className="text-xs break-all text-slate-400">{item.imageUrl}</p>
                       </>
                     )}
                   </div>
