@@ -6,21 +6,19 @@ export default function AdminLoginPage() {
       <div className="mx-auto grid min-h-[calc(100vh-6rem)] max-w-5xl items-center gap-8 lg:grid-cols-[0.95fr_1.05fr]">
         <section className="space-y-6">
           <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-            Admin Access
+            后台登录
           </p>
           <h1 className="font-[family-name:var(--font-cormorant)] text-5xl leading-none">
-            Super admin access
+            超级管理员入口
           </h1>
           <p className="max-w-xl text-base leading-8 text-slate-300">
-            This backend is intentionally limited to a single super-admin
-            account. Video creation, deletion, and batch ingest are designed to
-            be driven by OpenClaw through protected internal APIs.
+            这个后台故意只保留一个超级管理员账号。视频新增、删除和批量采集，都会通过这个运营入口和 OpenClaw 的内部 API 完成闭环。
           </p>
           <div className="rounded-[28px] border border-white/10 bg-white/5 p-5 text-sm leading-7 text-slate-300">
-            <p>Default workflow:</p>
-            <p>1. The super admin curates and corrects content manually.</p>
-            <p>2. OpenClaw pushes live ingest payloads into internal APIs.</p>
-            <p>3. The system deduplicates by source ID and records ingest logs.</p>
+            <p>默认工作流：</p>
+            <p>1. 超级管理员手动修正与补录内容。</p>
+            <p>2. OpenClaw 把实时采集结果推送到内部 API。</p>
+            <p>3. 系统根据来源 ID 去重，并记录 ingest 日志。</p>
           </div>
         </section>
 

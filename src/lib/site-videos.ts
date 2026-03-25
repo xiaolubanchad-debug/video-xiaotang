@@ -1,4 +1,4 @@
-import { Prisma, VideoStatus } from "@prisma/client";
+﻿import { BannerStatus, Prisma, VideoStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
@@ -47,8 +47,23 @@ const cardVideoSelect = Prisma.validator<Prisma.VideoSelect>()({
   },
 });
 
+const heroBannerSelect = Prisma.validator<Prisma.BannerSelect>()({
+  id: true,
+  title: true,
+  imageUrl: true,
+  targetUrl: true,
+  sortOrder: true,
+  video: {
+    select: cardVideoSelect,
+  },
+});
+
 export type SiteVideoCard = Prisma.VideoGetPayload<{
   select: typeof cardVideoSelect;
+}>;
+
+export type SiteHeroBanner = Prisma.BannerGetPayload<{
+  select: typeof heroBannerSelect;
 }>;
 
 export async function getSiteNavigationCategories() {
@@ -71,8 +86,20 @@ export async function getSiteNavigationCategories() {
 }
 
 export async function getHomePageData() {
-  const [heroVideos, latestVideos, spotlightVideos, categoryRows] =
+  const now = new Date();
+
+  const [heroBanners, heroVideos, latestVideos, spotlightVideos, categoryRows] =
     await Promise.all([
+      prisma.banner.findMany({
+        where: {
+          status: BannerStatus.ACTIVE,
+          OR: [{ startAt: null }, { startAt: { lte: now } }],
+          AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
+        },
+        orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
+        select: heroBannerSelect,
+        take: 3,
+      }),
       prisma.video.findMany({
         where: {
           status: VideoStatus.PUBLISHED,
@@ -124,6 +151,7 @@ export async function getHomePageData() {
     ]);
 
   return {
+    heroBanners,
     heroVideos,
     latestVideos,
     spotlightVideos,

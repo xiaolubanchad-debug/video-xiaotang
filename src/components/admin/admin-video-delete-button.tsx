@@ -12,7 +12,7 @@ export function AdminVideoDeleteButton({ videoId, title }: Props) {
 
   async function handleDelete() {
     const confirmed = window.confirm(
-      `Delete "${title}"? This removes the video record from the CMS.`,
+      `确定删除“${title}”吗？这会把这条视频记录从 CMS 中移除。`,
     );
 
     if (!confirmed) {
@@ -27,7 +27,7 @@ export function AdminVideoDeleteButton({ videoId, title }: Props) {
 
     if (!response.ok) {
       setIsDeleting(false);
-      window.alert("Delete failed. Please try again.");
+      window.alert("删除失败，请稍后重试。");
       return;
     }
 
@@ -41,7 +41,7 @@ export function AdminVideoDeleteButton({ videoId, title }: Props) {
       disabled={isDeleting}
       className="rounded-full border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/20 disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {isDeleting ? "Deleting..." : "Delete"}
+      {isDeleting ? "删除中..." : "删除"}
     </button>
   );
 }

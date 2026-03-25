@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { getHomePageData, getSiteNavigationCategories } from "@/lib/site-videos";
 import {
@@ -16,23 +16,36 @@ export async function HomePage() {
     getHomePageData(),
   ]);
 
-  const lead = data.heroVideos[0];
+  const featuredBanner = data.heroBanners[0];
+  const lead = featuredBanner?.video ?? data.heroVideos[0];
   const categoryRows = data.categoryRows.slice(0, 2);
   const hotVideos = data.latestVideos.slice(0, 4);
   const spotlightVideos = data.spotlightVideos.slice(0, 4);
   const freshVideos = data.latestVideos.slice(4, 8);
+  const heroBackground =
+    featuredBanner?.imageUrl ?? lead?.coverUrl ?? lead?.posterUrl ?? undefined;
+  const heroTitle = featuredBanner?.title ?? lead?.title ?? "今日精选";
+  const heroDescription =
+    lead?.description ??
+    lead?.subtitle ??
+    "来自最新片库的一线内容，已经同步到前台站点等待观众发现。";
+  const heroPrimaryHref = featuredBanner?.video
+    ? `/videos/${featuredBanner.video.slug}`
+    : featuredBanner?.targetUrl ?? (lead ? `/videos/${lead.slug}` : "/search");
+  const heroPrimaryLabel = featuredBanner?.video || lead ? "立即观看" : "查看专题";
+  const isExternalHeroLink = /^https?:\/\//.test(heroPrimaryHref);
 
   return (
     <SiteShell categories={categories} activeNav="home">
       <div className="space-y-14">
-        {lead ? (
+        {lead || featuredBanner ? (
           <section className="relative min-h-[620px] overflow-hidden rounded-[34px] border border-white/6 bg-[#161616] shadow-[0_30px_120px_rgba(0,0,0,0.38)] lg:min-h-[680px]">
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={
-                lead.coverUrl ?? lead.posterUrl
+                heroBackground
                   ? {
-                      backgroundImage: `url(${lead.coverUrl ?? lead.posterUrl})`,
+                      backgroundImage: `url(${heroBackground})`,
                     }
                   : undefined
               }
@@ -44,54 +57,64 @@ export async function HomePage() {
             <div className="relative flex min-h-[620px] flex-col justify-end px-7 py-10 sm:px-10 lg:min-h-[680px] lg:px-12">
               <div className="max-w-3xl space-y-6 pb-12 lg:pb-28">
                 <span className="inline-flex rounded-full border border-[#b8c4ff]/16 bg-[#b8c4ff]/10 px-4 py-2 text-xs font-semibold tracking-[0.32em] text-[#dde1ff]">
-                  PREMIUM STREAMING
+                  {featuredBanner ? "HERO BANNER" : "PREMIUM STREAMING"}
                 </span>
 
                 <div className="space-y-4">
                   <h1 className="font-serif text-4xl font-semibold leading-none tracking-[-0.05em] text-white sm:text-6xl lg:text-7xl">
-                    {lead.title}
+                    {heroTitle}
                   </h1>
                   <p className="max-w-2xl text-base leading-8 text-[#d0ced6]">
-                    {lead.description ??
-                      lead.subtitle ??
-                      "来自最新片库的一线内容，已同步到前台站点等待观众发现。"}
+                    {heroDescription}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 text-sm text-[#d7d5dc]">
-                  {lead.category ? (
+                {lead ? (
+                  <div className="flex flex-wrap gap-2 text-sm text-[#d7d5dc]">
+                    {lead.category ? (
+                      <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
+                        {lead.category.name}
+                      </span>
+                    ) : null}
+                    {lead.year ? (
+                      <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
+                        {lead.year}
+                      </span>
+                    ) : null}
                     <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
-                      {lead.category.name}
+                      {formatVideoTypeLabel(lead.type)}
                     </span>
-                  ) : null}
-                  {lead.year ? (
-                    <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
-                      {lead.year}
-                    </span>
-                  ) : null}
-                  <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
-                    {formatVideoTypeLabel(lead.type)}
-                  </span>
-                  {formatVideoFormatLabel(lead.sources[0]?.format) ? (
-                    <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
-                      {formatVideoFormatLabel(lead.sources[0]?.format)}
-                    </span>
-                  ) : null}
-                  {formatCompactDuration(lead.durationSeconds) ? (
-                    <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
-                      {formatCompactDuration(lead.durationSeconds)}
-                    </span>
-                  ) : null}
-                </div>
+                    {formatVideoFormatLabel(lead.sources[0]?.format) ? (
+                      <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
+                        {formatVideoFormatLabel(lead.sources[0]?.format)}
+                      </span>
+                    ) : null}
+                    {formatCompactDuration(lead.durationSeconds) ? (
+                      <span className="rounded-full border border-white/8 bg-white/[0.03] px-3 py-2">
+                        {formatCompactDuration(lead.durationSeconds)}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
 
                 <div className="flex flex-wrap gap-3">
-                  <Link
-                    href={`/videos/${lead.slug}`}
-                    className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
-                  >
-                    立即观看
-                  </Link>
-                  {lead.category ? (
+                  {isExternalHeroLink ? (
+                    <a
+                      href={heroPrimaryHref}
+                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                    >
+                      {heroPrimaryLabel}
+                    </a>
+                  ) : (
+                    <Link
+                      href={heroPrimaryHref}
+                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                    >
+                      {heroPrimaryLabel}
+                    </Link>
+                  )}
+
+                  {lead?.category ? (
                     <Link
                       href={`/category/${lead.category.slug}`}
                       className="rounded-xl border border-white/8 bg-white/[0.04] px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
@@ -128,8 +151,7 @@ export async function HomePage() {
             <p className="text-xs tracking-[0.4em] text-[#b8c4ff]/70">片库为空</p>
             <h1 className="mt-4 font-serif text-5xl text-white">还没有已发布内容</h1>
             <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-[#b8b6bf]">
-              你可以先通过 OpenClaw 的采集接口推送第一条视频，
-              或者从后台手动新增内容并发布。
+              你可以先通过 OpenClaw 的采集接口推送第一条视频，或者从后台手动新增内容并发布。
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link

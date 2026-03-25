@@ -6,50 +6,50 @@ test("super admin can create, edit, and delete a video", async ({ page }) => {
   const updatedTitle = `Codex Updated Video ${unique}`;
 
   await page.goto("/admin/login");
-  await page.getByLabel("Email").fill("admin@example.com");
-  await page.getByLabel("Password").fill("12345678");
-  await page.getByRole("button", { name: "Enter admin" }).click();
+  await page.getByLabel("邮箱").fill("admin@example.com");
+  await page.getByLabel("密码").fill("12345678");
+  await page.getByRole("button", { name: "进入后台" }).click();
 
   await expect(page).toHaveURL(/\/admin$/);
-  await page.getByRole("link", { name: "Open videos" }).click();
+  await page.getByRole("link", { name: "视频管理" }).click();
   await expect(page).toHaveURL(/\/admin\/videos$/);
 
-  await page.getByRole("link", { name: "Add video" }).click();
+  await page.getByRole("link", { name: "新增视频" }).click();
   await expect(page).toHaveURL(/\/admin\/videos\/new$/);
 
-  await page.getByLabel("Title", { exact: true }).fill(initialTitle);
-  await page.getByLabel("Subtitle", { exact: true }).fill("Phase 1");
+  await page.getByLabel("标题", { exact: true }).fill(initialTitle);
+  await page.getByLabel("副标题", { exact: true }).fill("Phase 1");
   await page
-    .getByLabel("Description")
+    .getByLabel("简介")
     .fill("Created by the automated admin workflow test.");
-  await page.getByLabel("Type", { exact: true }).fill("series");
-  await page.getByLabel("Category", { exact: true }).fill("Automation");
-  await page.getByLabel("Region", { exact: true }).fill("CN");
-  await page.getByLabel("Language", { exact: true }).fill("Chinese");
-  await page.getByLabel("Year", { exact: true }).fill("2026");
+  await page.getByLabel("内容类型", { exact: true }).fill("series");
+  await page.getByLabel("分类", { exact: true }).fill("Automation");
+  await page.getByLabel("地区", { exact: true }).fill("CN");
+  await page.getByLabel("语言", { exact: true }).fill("Chinese");
+  await page.getByLabel("年份", { exact: true }).fill("2026");
   await page
-    .getByLabel("Duration (seconds)", { exact: true })
+    .getByLabel("时长（秒）", { exact: true })
     .fill("1800");
   await page
-    .getByLabel("Tags (comma separated)")
+    .getByLabel("标签（逗号分隔）")
     .fill("automation, admin-flow");
   await page
-    .getByLabel("Source URL")
+    .getByLabel("播放源地址")
     .fill("https://example.com/automation-video.m3u8");
-  await page.getByRole("button", { name: "Create video" }).click();
+  await page.getByRole("button", { name: "创建视频" }).click();
 
   await expect(page).toHaveURL(/\/admin\/videos$/);
   await expect(page.getByText(initialTitle)).toBeVisible();
 
   const row = page.locator("article").filter({ hasText: initialTitle }).first();
-  await row.getByRole("link", { name: "Edit" }).click();
+  await row.getByRole("link", { name: "编辑" }).click();
 
   await expect(page).toHaveURL(/\/edit$/);
-  await page.getByLabel("Title", { exact: true }).fill(updatedTitle);
+  await page.getByLabel("标题", { exact: true }).fill(updatedTitle);
   await page
-    .getByLabel("Description")
+    .getByLabel("简介")
     .fill("Updated by the automated admin workflow test.");
-  await page.getByRole("button", { name: "Save changes" }).click();
+  await page.getByRole("button", { name: "保存修改" }).click();
 
   await expect(page).toHaveURL(/\/admin\/videos$/);
   await expect(page.getByText(updatedTitle)).toBeVisible();
@@ -65,7 +65,7 @@ test("super admin can create, edit, and delete a video", async ({ page }) => {
     .first();
 
   page.once("dialog", (dialog) => dialog.accept());
-  await updatedRow.getByRole("button", { name: "Delete" }).click();
+  await updatedRow.getByRole("button", { name: "删除" }).click();
 
   await expect(page.getByText(updatedTitle)).toHaveCount(0);
 

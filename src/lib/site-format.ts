@@ -1,4 +1,4 @@
-export function formatDurationLabel(durationSeconds?: number | null) {
+﻿export function formatDurationLabel(durationSeconds?: number | null) {
   if (!durationSeconds) {
     return null;
   }

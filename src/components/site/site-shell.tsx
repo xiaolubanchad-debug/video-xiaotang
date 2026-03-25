@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 type CategoryLink = {
   id: string;
@@ -73,7 +73,7 @@ export function SiteShell({
                   type="search"
                   name="q"
                   defaultValue={searchQuery}
-                  placeholder="搜索电影、剧集..."
+                  placeholder="搜索电影、剧集、标签..."
                   className="min-w-0 flex-1 bg-transparent px-2 text-sm text-white outline-none placeholder:text-[#7f7d88] sm:w-56"
                 />
                 <button
@@ -92,7 +92,7 @@ export function SiteShell({
               href="/admin/login"
               className="grid h-10 w-10 place-items-center rounded-full border border-white/8 bg-[linear-gradient(145deg,#282828,#181818)] text-sm font-semibold text-[#ffb4aa] shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
             >
-              影
+              后
             </Link>
           </div>
         </div>
@@ -128,8 +128,7 @@ export function SiteShell({
                 CINEMA MIRROR
               </p>
               <p className="max-w-sm text-sm leading-7 text-[#8f8d98]">
-                小糖视频的前台站点，围绕电影与剧集内容做沉浸式浏览体验。
-                所有内容由后台 CMS 与 OpenClaw 采集接口统一驱动。
+                小糖视频的前台站点，围绕电影与剧集内容做沉浸式浏览体验。所有内容由后台 CMS 和 OpenClaw 采集接口统一驱动。
               </p>
             </div>
 

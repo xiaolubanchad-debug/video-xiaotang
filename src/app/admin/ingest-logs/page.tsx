@@ -1,6 +1,6 @@
-import { IngestAction, IngestStatus, Prisma } from "@prisma/client";
-import Link from "next/link";
+﻿import { IngestAction, IngestStatus, Prisma } from "@prisma/client";
 
+import { AdminShell } from "@/components/admin/admin-shell";
 import { requireSuperAdminPageSession } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
@@ -16,7 +16,7 @@ type Props = {
 export const dynamic = "force-dynamic";
 
 export default async function AdminIngestLogsPage({ searchParams }: Props) {
-  await requireSuperAdminPageSession();
+  const session = await requireSuperAdminPageSession();
 
   const params = await searchParams;
   const provider = params.provider?.trim() ?? "";
@@ -54,125 +54,98 @@ export default async function AdminIngestLogsPage({ searchParams }: Props) {
   });
 
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-10 text-slate-50">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8">
-        <header className="flex flex-wrap items-end justify-between gap-4 rounded-[32px] border border-white/10 bg-white/5 p-8">
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
-              OpenClaw telemetry
-            </p>
-            <h1 className="mt-4 font-[family-name:var(--font-cormorant)] text-5xl">
-              Ingest logs
-            </h1>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-              Track upsert, batch-upsert, and delete calls from your ingestion
-              worker. This is the first operator view for seeing what arrived
-              and what failed.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/admin"
-              className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
+    <AdminShell
+      section="ingest"
+      userEmail={session.user.email}
+      eyebrow="采集可观测性"
+      title="OpenClaw 日志"
+      description="这里记录 upsert、batch-upsert 和 delete 的结果，方便你判断采集是否成功、哪条数据出了问题。"
+    >
+      <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+        <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <Field label="Provider" name="provider" defaultValue={provider} />
+          <SelectField
+            label="Action"
+            name="action"
+            value={action}
+            options={["", ...Object.values(IngestAction)]}
+          />
+          <SelectField
+            label="Status"
+            name="status"
+            value={status}
+            options={["", ...Object.values(IngestStatus)]}
+          />
+          <Field
+            label="External ID"
+            name="externalId"
+            defaultValue={externalId}
+          />
+          <div className="flex items-end gap-3">
+            <button
+              type="submit"
+              className="h-12 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
             >
-              Back to dashboard
-            </Link>
-            <Link
-              href="/admin/videos"
-              className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
+              应用筛选
+            </button>
+            <a
+              href="/admin/ingest-logs"
+              className="inline-flex h-12 items-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/8"
             >
-              Open videos
-            </Link>
+              清空
+            </a>
           </div>
-        </header>
+        </form>
+      </section>
 
-        <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
-          <form className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-            <Field label="Provider" name="provider" defaultValue={provider} />
-            <SelectField
-              label="Action"
-              name="action"
-              value={action}
-              options={["", ...Object.values(IngestAction)]}
-            />
-            <SelectField
-              label="Status"
-              name="status"
-              value={status}
-              options={["", ...Object.values(IngestStatus)]}
-            />
-            <Field
-              label="External ID"
-              name="externalId"
-              defaultValue={externalId}
-            />
-            <div className="flex items-end gap-3">
-              <button
-                type="submit"
-                className="h-12 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100"
-              >
-                Apply filters
-              </button>
-              <Link
-                href="/admin/ingest-logs"
-                className="inline-flex h-12 items-center rounded-full border border-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/8"
-              >
-                Clear
-              </Link>
+      <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
+        <div className="hidden grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
+          <p>Provider</p>
+          <p>Action</p>
+          <p>Status</p>
+          <p>External ID</p>
+          <p>Error</p>
+          <p>Created</p>
+        </div>
+
+        <div className="divide-y divide-white/10">
+          {logs.length === 0 ? (
+            <div className="px-6 py-10 text-sm text-slate-300">
+              当前筛选条件下没有采集日志。
             </div>
-          </form>
-        </section>
-
-        <section className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
-          <div className="hidden grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr] gap-4 border-b border-white/10 px-6 py-4 text-xs uppercase tracking-[0.3em] text-slate-400 xl:grid">
-            <p>Provider</p>
-            <p>Action</p>
-            <p>Status</p>
-            <p>External ID</p>
-            <p>Error</p>
-            <p>Created</p>
-          </div>
-
-          <div className="divide-y divide-white/10">
-            {logs.length === 0 ? (
-              <div className="px-6 py-10 text-sm text-slate-300">
-                No ingest logs match the current filters.
-              </div>
-            ) : (
-              logs.map((log) => (
-                <article
-                  key={log.id}
-                  className="grid grid-cols-1 gap-4 px-6 py-5 xl:grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr]"
-                >
-                  <LogCell label="Provider" value={log.provider} />
-                  <LogCell label="Action" value={log.action} />
-                  <LogCell
-                    label="Status"
-                    value={log.responseStatus}
-                    accent={
-                      log.responseStatus === "SUCCESS"
-                        ? "text-emerald-300"
-                        : "text-rose-300"
-                    }
-                  />
-                  <LogCell label="External ID" value={log.externalId} />
-                  <LogCell
-                    label="Error"
-                    value={log.errorMessage || "No error"}
-                    className="break-words"
-                  />
-                  <LogCell
-                    label="Created"
-                    value={log.createdAt.toLocaleString("zh-CN")}
-                  />
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
+          ) : (
+            logs.map((log) => (
+              <article
+                key={log.id}
+                className="grid grid-cols-1 gap-4 px-6 py-5 xl:grid-cols-[0.9fr_0.8fr_0.8fr_1.1fr_1.4fr_0.9fr]"
+              >
+                <LogCell label="Provider" value={log.provider} />
+                <LogCell label="Action" value={log.action} />
+                <LogCell
+                  label="Status"
+                  value={log.responseStatus}
+                  accent={
+                    log.responseStatus === "SUCCESS"
+                      ? "text-emerald-300"
+                      : "text-rose-300"
+                  }
+                />
+                <LogCell label="External ID" value={log.externalId} />
+                <LogCell
+                  label="Error"
+                  value={log.errorMessage || "No error"}
+                  className="break-words"
+                />
+                <LogCell
+                  label="Created"
+                  value={log.createdAt.toLocaleString("zh-CN")}
+                />
+              </article>
+            ))
+          )}
+        </div>
+      </section>
+    </AdminShell>
   );
 }
 

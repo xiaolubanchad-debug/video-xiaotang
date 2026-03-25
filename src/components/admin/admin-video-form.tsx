@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 
@@ -81,7 +81,7 @@ export function AdminVideoForm({
     };
 
     if (!response.ok || !result.ok) {
-      setError(result.error ?? "Failed to create the video.");
+      setError(result.error ?? "保存视频失败。");
       setIsSubmitting(false);
       return;
     }
@@ -96,98 +96,98 @@ export function AdminVideoForm({
     >
       <div className="grid gap-5 md:grid-cols-2">
         <Field
-          label="Title"
+          label="标题"
           name="title"
           required
           defaultValue={initialValues?.title}
         />
         <Field
-          label="Subtitle"
+          label="副标题"
           name="subtitle"
           defaultValue={initialValues?.subtitle}
         />
         <Field
-          label="Cover URL"
+          label="封面地址"
           name="coverUrl"
           type="url"
           defaultValue={initialValues?.coverUrl}
         />
         <Field
-          label="Poster URL"
+          label="海报地址"
           name="posterUrl"
           type="url"
           defaultValue={initialValues?.posterUrl}
         />
         <Field
-          label="Trailer URL"
+          label="预告片地址"
           name="trailerUrl"
           type="url"
           defaultValue={initialValues?.trailerUrl}
         />
         <Field
-          label="Source URL"
+          label="播放源地址"
           name="sourceUrl"
           type="url"
           defaultValue={initialValues?.sourceUrl}
         />
         <Field
-          label="Type"
+          label="内容类型"
           name="type"
           defaultValue={initialValues?.type ?? "movie"}
         />
         <Field
-          label="Category"
+          label="分类"
           name="categoryName"
           defaultValue={initialValues?.categoryName}
         />
         <Field
-          label="Region"
+          label="地区"
           name="region"
           defaultValue={initialValues?.region}
         />
         <Field
-          label="Language"
+          label="语言"
           name="language"
           defaultValue={initialValues?.language}
         />
         <Field
-          label="Year"
+          label="年份"
           name="year"
           type="number"
           defaultValue={initialValues?.year ?? undefined}
         />
         <Field
-          label="Duration (seconds)"
+          label="时长（秒）"
           name="durationSeconds"
           type="number"
           defaultValue={initialValues?.durationSeconds ?? undefined}
         />
         <Field
-          label="Tags (comma separated)"
+          label="标签（逗号分隔）"
           name="tags"
           className="md:col-span-2"
           defaultValue={initialValues?.tags?.join(", ")}
         />
         <label className="space-y-2">
-          <span className="text-sm text-slate-300">Status</span>
+          <span className="text-sm text-slate-300">状态</span>
           <select
             name="status"
             defaultValue={initialValues?.status ?? "DRAFT"}
             className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-cyan-300/50"
           >
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="ARCHIVED">Archived</option>
+            <option value="DRAFT">草稿</option>
+            <option value="PUBLISHED">已发布</option>
+            <option value="ARCHIVED">已归档</option>
           </select>
         </label>
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm text-slate-300">Description</span>
+          <span className="text-sm text-slate-300">简介</span>
           <textarea
             name="description"
             rows={6}
             defaultValue={initialValues?.description}
             className="w-full rounded-3xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-cyan-300/50"
-            placeholder="A short editorial description for the video..."
+            placeholder="写一段用于前台展示的内容简介..."
           />
         </label>
       </div>
@@ -206,9 +206,9 @@ export function AdminVideoForm({
         >
           {isSubmitting
             ? method === "POST"
-              ? "Creating..."
-              : "Saving..."
-            : submitLabel ?? (method === "POST" ? "Create video" : "Save changes")}
+              ? "创建中..."
+              : "保存中..."
+            : submitLabel ?? (method === "POST" ? "创建视频" : "保存修改")}
         </button>
       </div>
     </form>

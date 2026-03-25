@@ -22,7 +22,7 @@ export function AdminLoginForm() {
     });
 
     if (result?.error) {
-      setError("Sign-in failed. Check the super-admin email and password.");
+      setError("登录失败，请检查超级管理员邮箱和密码。");
       setIsSubmitting(false);
       return;
     }
@@ -36,29 +36,29 @@ export function AdminLoginForm() {
       className="rounded-[32px] border border-white/10 bg-white/[0.06] p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] backdrop-blur"
     >
       <p className="text-sm uppercase tracking-[0.3em] text-cyan-200/70">
-        Super Admin Sign In
+        超级管理员登录
       </p>
       <div className="mt-8 space-y-5">
         <label className="block space-y-2">
-          <span className="text-sm text-slate-300">Email</span>
+          <span className="text-sm text-slate-300">邮箱</span>
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-cyan-300/50"
-            placeholder="super-admin@example.com"
+            placeholder="admin@example.com"
             required
           />
         </label>
 
         <label className="block space-y-2">
-          <span className="text-sm text-slate-300">Password</span>
+          <span className="text-sm text-slate-300">密码</span>
           <input
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-cyan-300/50"
-            placeholder="Enter the admin password"
+            placeholder="输入后台密码"
             required
           />
         </label>
@@ -75,7 +75,7 @@ export function AdminLoginForm() {
         disabled={isSubmitting}
         className="mt-8 w-full rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-100 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isSubmitting ? "Signing in..." : "Enter admin"}
+        {isSubmitting ? "登录中..." : "进入后台"}
       </button>
     </form>
   );
