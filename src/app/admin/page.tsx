@@ -61,6 +61,12 @@ export default async function AdminPage() {
           >
             评论管理
           </Link>
+          <Link
+            href="/admin/users"
+            className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
+          >
+            用户管理
+          </Link>
         </>
       }
     >
@@ -82,6 +88,11 @@ export default async function AdminPage() {
             "分类与标签",
             "维护首页导航频道、搜索标签和内容归类体系，确保前台展示稳定一致。",
             "/admin/categories",
+          ],
+          [
+            "用户管理",
+            "按邮箱搜索前台注册用户，并在需要时直接删除其评论、收藏、最近观看和搜索记录。",
+            "/admin/users",
           ],
           [
             "首页推荐位",

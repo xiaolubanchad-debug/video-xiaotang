@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 type AdminSection =
   | "dashboard"
   | "videos"
+  | "users"
   | "homeSections"
   | "comments"
   | "categories"
@@ -38,6 +39,12 @@ const navItems: Array<{
     label: "视频管理",
     description: "维护视频资料、状态与来源",
     href: "/admin/videos",
+  },
+  {
+    section: "users",
+    label: "用户管理",
+    description: "按邮箱检索并删除普通用户",
+    href: "/admin/users",
   },
   {
     section: "homeSections",
