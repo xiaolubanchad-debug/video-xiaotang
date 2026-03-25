@@ -373,6 +373,8 @@ export async function getVideoDetailPageData(slug: string) {
       language: true,
       durationSeconds: true,
       publishedAt: true,
+      favoriteCount: true,
+      commentCount: true,
       category: {
         select: {
           id: true,

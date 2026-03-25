@@ -4,6 +4,7 @@ import {
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
+import { redirect } from "next/navigation";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
@@ -109,4 +110,24 @@ export const authOptions: NextAuthOptions = {
 
 export async function getViewerSession() {
   return getServerSession(authOptions);
+}
+
+export async function requireViewerPageSession() {
+  const session = await getViewerSession();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  return session;
+}
+
+export async function requireViewerApiSession() {
+  const session = await getViewerSession();
+
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized");
+  }
+
+  return session;
 }

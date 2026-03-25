@@ -1,9 +1,11 @@
 ﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { FavoriteButton } from "@/components/site/favorite-button";
 import { SiteShell } from "@/components/site/site-shell";
 import { VideoCommentForm } from "@/components/site/video-comment-form";
 import { getViewerSession } from "@/lib/auth";
+import { isVideoFavoritedByViewer } from "@/lib/site-account";
 import { VideoCard } from "@/components/site/video-card";
 import { VideoPlayer } from "@/components/site/video-player";
 import {
@@ -47,6 +49,10 @@ export default async function VideoDetailPage({ params }: Props) {
   }
 
   const { video, relatedVideos } = result;
+  const isFavorited =
+    session?.user?.id
+      ? await isVideoFavoritedByViewer(session.user.id, video.id)
+      : false;
   const primarySource = video.sources[0];
   const firstEpisode = video.episodes.find((episode) => episode.sourceUrl);
   const playableUrl = primarySource?.sourceUrl ?? firstEpisode?.sourceUrl ?? null;
@@ -307,6 +313,22 @@ export default async function VideoDetailPage({ params }: Props) {
               </a>
             </div>
 
+            <section className="rounded-[28px] border border-white/6 bg-[#151515] px-5 py-6">
+              <p className="text-xs tracking-[0.35em] text-[#8f8d97]">个人操作</p>
+              <h2 className="mt-3 font-serif text-3xl text-white">把它收进你的片单</h2>
+              <p className="mt-3 text-sm leading-7 text-[#c6c4cc]">
+                当前收藏数 {video.favoriteCount}，已审核评论 {video.commentCount}。登录后可直接收藏，稍后从“我的收藏”继续观看。
+              </p>
+              <div className="mt-5">
+                <FavoriteButton
+                  videoId={video.id}
+                  initialFavorited={isFavorited}
+                  initialCount={video.favoriteCount}
+                  isLoggedIn={Boolean(session?.user?.id)}
+                />
+              </div>
+            </section>
+
             <section className="space-y-4 rounded-[28px] border border-white/6 bg-[#151515] px-5 py-6">
               <div>
                 <p className="text-xs tracking-[0.35em] text-[#8f8d97]">猜你喜欢</p>
@@ -376,4 +398,5 @@ export default async function VideoDetailPage({ params }: Props) {
     </SiteShell>
   );
 }
+
 
