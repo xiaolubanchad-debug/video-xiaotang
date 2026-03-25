@@ -1,10 +1,32 @@
 ﻿import Link from "next/link";
 
+import { CommentStatus, VideoStatus } from "@prisma/client";
+
 import { AdminShell } from "@/components/admin/admin-shell";
 import { requireSuperAdminPageSession } from "@/lib/admin-auth";
+import { prisma } from "@/lib/prisma";
 
 export default async function AdminPage() {
   const session = await requireSuperAdminPageSession();
+  const [videoCount, publishedVideoCount, pendingCommentCount, userCount] =
+    await prisma.$transaction([
+      prisma.video.count(),
+      prisma.video.count({
+        where: {
+          status: VideoStatus.PUBLISHED,
+        },
+      }),
+      prisma.comment.count({
+        where: {
+          status: CommentStatus.PENDING,
+        },
+      }),
+      prisma.user.count({
+        where: {
+          isSuperAdmin: false,
+        },
+      }),
+    ]);
 
   return (
     <AdminShell
@@ -42,6 +64,13 @@ export default async function AdminPage() {
         </>
       }
     >
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="视频总数" value={videoCount} />
+        <StatCard label="已发布视频" value={publishedVideoCount} />
+        <StatCard label="待审核评论" value={pendingCommentCount} />
+        <StatCard label="站点用户" value={userCount} />
+      </section>
+
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {[
           [
@@ -114,14 +143,21 @@ export default async function AdminPage() {
           <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">
             当前登录
           </p>
-          <p className="mt-4 text-lg font-semibold text-white">
-            {session.user.email}
-          </p>
+          <p className="mt-4 text-lg font-semibold text-white">{session.user.email}</p>
           <p className="mt-3 text-sm leading-7 text-slate-300">
             当前后台只保留一个超级管理员账号，所有运营与采集修正都由这一个入口完成。
           </p>
         </article>
       </section>
     </AdminShell>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <article className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+      <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/70">{label}</p>
+      <p className="mt-4 text-4xl font-semibold text-white">{value}</p>
+    </article>
   );
 }

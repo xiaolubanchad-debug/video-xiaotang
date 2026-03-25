@@ -1,8 +1,9 @@
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 
 import { SiteShell } from "@/components/site/site-shell";
 import { VideoCard } from "@/components/site/video-card";
+import { getViewerSession } from "@/lib/auth";
 import {
   getCategoryPageData,
   getSiteNavigationCategories,
@@ -40,7 +41,8 @@ function buildFilterHref(
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const [resolvedParams, resolvedSearchParams] = await Promise.all([params, searchParams]);
-  const [categories, category] = await Promise.all([
+  const [session, categories, category] = await Promise.all([
+    getViewerSession(),
     getSiteNavigationCategories(),
     getCategoryPageData(resolvedParams.slug),
   ]);
@@ -69,22 +71,21 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   });
 
   return (
-    <SiteShell categories={categories} activeNav="category">
+    <SiteShell categories={categories} activeNav="category" viewer={session?.user}>
       <div className="space-y-8">
         <section className="space-y-6 rounded-[30px] border border-white/6 bg-[#151515] px-6 py-8 shadow-[0_30px_90px_rgba(0,0,0,0.24)] sm:px-8">
           <div>
             <p className="text-xs tracking-[0.35em] text-[#8f8d97]">分类频道</p>
             <h1 className="mt-4 font-serif text-5xl text-white sm:text-6xl">{category.name}</h1>
             <p className="mt-4 max-w-3xl text-base leading-8 text-[#b6b4bc]">
-            {category.description ??
-              `浏览当前片库中已发布的 ${category.name} 内容，按照地区和年份快速筛选。`}
+              {category.description ?? `浏览当前片库中已发布的 ${category.name} 内容，按地区和年份快速筛选。`}
             </p>
           </div>
 
           <div className="space-y-5 border-t border-white/6 pt-6">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
               <p className="w-14 pt-2 text-xs font-semibold tracking-[0.35em] text-[#6f6d77]">
-                类型
+                分类
               </p>
               <div className="flex flex-wrap gap-2">
                 {categories.map((item) => {
@@ -176,7 +177,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                 排序: <span className="font-semibold text-[#b8c4ff]">最新发布</span>
               </span>
               <span>
-                视角: <span className="font-semibold text-white">16:9 内容卡片</span>
+                视图: <span className="font-semibold text-white">16:9 内容卡片</span>
               </span>
             </div>
             <p>

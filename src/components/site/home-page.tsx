@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 
+import { getViewerSession } from "@/lib/auth";
 import { homePageSectionDefinitions } from "@/lib/home-sections";
 import { getHomePageData, getSiteNavigationCategories } from "@/lib/site-videos";
 import {
@@ -12,7 +13,8 @@ import { SiteShell } from "./site-shell";
 import { VideoCard } from "./video-card";
 
 export async function HomePage() {
-  const [categories, data] = await Promise.all([
+  const [session, categories, data] = await Promise.all([
+    getViewerSession(),
     getSiteNavigationCategories(),
     getHomePageData(),
   ]);
@@ -40,7 +42,7 @@ export async function HomePage() {
   };
 
   return (
-    <SiteShell categories={categories} activeNav="home">
+    <SiteShell categories={categories} activeNav="home" viewer={session?.user}>
       <div className="space-y-14">
         {lead || featuredBanner ? (
           <section className="relative min-h-[620px] overflow-hidden rounded-[34px] border border-white/6 bg-[#161616] shadow-[0_30px_120px_rgba(0,0,0,0.38)] lg:min-h-[680px]">
@@ -208,3 +210,4 @@ export async function HomePage() {
     </SiteShell>
   );
 }
+

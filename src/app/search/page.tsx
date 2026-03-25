@@ -1,4 +1,5 @@
 ﻿import { SiteShell } from "@/components/site/site-shell";
+import { getViewerSession } from "@/lib/auth";
 import { VideoCard } from "@/components/site/video-card";
 import { formatVideoTypeLabel } from "@/lib/site-format";
 import {
@@ -15,7 +16,8 @@ type Props = {
 export default async function SearchPage({ searchParams }: Props) {
   const resolvedSearchParams = await searchParams;
   const query = resolvedSearchParams.q?.trim() ?? "";
-  const [categories, results] = await Promise.all([
+  const [session, categories, results] = await Promise.all([
+    getViewerSession(),
     getSiteNavigationCategories(),
     searchSiteVideos(query),
   ]);
@@ -33,6 +35,7 @@ export default async function SearchPage({ searchParams }: Props) {
       searchQuery={query}
       activeNav="discover"
       hideHeaderSearch
+      viewer={session?.user}
     >
       <div className="space-y-10">
         <section className="mx-auto max-w-4xl space-y-8 pt-10 text-center">
@@ -138,3 +141,4 @@ export default async function SearchPage({ searchParams }: Props) {
     </SiteShell>
   );
 }
+

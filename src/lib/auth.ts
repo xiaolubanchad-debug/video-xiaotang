@@ -1,5 +1,9 @@
 import bcrypt from "bcryptjs";
-import { type DefaultSession, type NextAuthOptions } from "next-auth";
+import {
+  getServerSession,
+  type DefaultSession,
+  type NextAuthOptions,
+} from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { z } from "zod";
 
@@ -15,6 +19,38 @@ type SessionUser = DefaultSession["user"] & {
   isSuperAdmin: boolean;
 };
 
+async function authorizeWithPassword(
+  credentials: Record<string, unknown> | undefined,
+  requireSuperAdmin: boolean,
+) {
+  const parsed = credentialsSchema.safeParse(credentials);
+
+  if (!parsed.success) {
+    return null;
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: parsed.data.email },
+  });
+
+  if (!user?.passwordHash || (requireSuperAdmin && !user.isSuperAdmin)) {
+    return null;
+  }
+
+  const isValid = await bcrypt.compare(parsed.data.password, user.passwordHash);
+
+  if (!isValid) {
+    return null;
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.nickname ?? user.email,
+    isSuperAdmin: user.isSuperAdmin,
+  };
+}
+
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
@@ -24,41 +60,25 @@ export const authOptions: NextAuthOptions = {
   },
   providers: [
     CredentialsProvider({
+      id: "admin-credentials",
       name: "Super Admin",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
-
-        if (!parsed.success) {
-          return null;
-        }
-
-        const user = await prisma.user.findUnique({
-          where: { email: parsed.data.email },
-        });
-
-        if (!user?.passwordHash || !user.isSuperAdmin) {
-          return null;
-        }
-
-        const isValid = await bcrypt.compare(
-          parsed.data.password,
-          user.passwordHash,
-        );
-
-        if (!isValid) {
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.nickname ?? "Super Admin",
-          isSuperAdmin: user.isSuperAdmin,
-        };
+        return authorizeWithPassword(credentials, true);
+      },
+    }),
+    CredentialsProvider({
+      id: "user-credentials",
+      name: "Site User",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        return authorizeWithPassword(credentials, false);
       },
     }),
   ],
@@ -67,6 +87,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.sub = user.id;
         token.email = user.email;
+        token.name = user.name;
         token.isSuperAdmin = Boolean(user.isSuperAdmin);
       }
 
@@ -77,6 +98,7 @@ export const authOptions: NextAuthOptions = {
         ...(session.user as SessionUser),
         id: token.sub ?? "",
         email: token.email,
+        name: typeof token.name === "string" ? token.name : session.user.name,
         isSuperAdmin: Boolean(token.isSuperAdmin),
       };
 
@@ -84,3 +106,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
 };
+
+export async function getViewerSession() {
+  return getServerSession(authOptions);
+}

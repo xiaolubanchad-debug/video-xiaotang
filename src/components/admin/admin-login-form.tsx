@@ -14,7 +14,7 @@ export function AdminLoginForm() {
     setIsSubmitting(true);
     setError(null);
 
-    const result = await signIn("credentials", {
+    const result = await signIn("admin-credentials", {
       email,
       password,
       callbackUrl: "/admin",

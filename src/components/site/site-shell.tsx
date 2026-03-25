@@ -1,5 +1,7 @@
 ﻿import Link from "next/link";
 
+import { SiteAuthActions } from "./site-auth-actions";
+
 type CategoryLink = {
   id: string;
   name: string;
@@ -12,6 +14,11 @@ type Props = {
   searchQuery?: string;
   activeNav?: "home" | "discover" | "category";
   hideHeaderSearch?: boolean;
+  viewer?: {
+    name?: string | null;
+    email?: string | null;
+    isSuperAdmin?: boolean;
+  } | null;
 };
 
 export function SiteShell({
@@ -20,6 +27,7 @@ export function SiteShell({
   searchQuery,
   activeNav = "home",
   hideHeaderSearch = false,
+  viewer,
 }: Props) {
   const categoryHref = categories[0] ? `/category/${categories[0].slug}` : "/search";
   const navItems = [
@@ -85,15 +93,7 @@ export function SiteShell({
               </form>
             ) : null}
 
-            <div className="hidden h-9 w-9 items-center justify-center rounded-full border border-white/8 bg-white/[0.03] text-xs text-[#b8c4ff] sm:flex">
-              消息
-            </div>
-            <Link
-              href="/admin/login"
-              className="grid h-10 w-10 place-items-center rounded-full border border-white/8 bg-[linear-gradient(145deg,#282828,#181818)] text-sm font-semibold text-[#ffb4aa] shadow-[0_10px_30px_rgba(0,0,0,0.28)]"
-            >
-              后
-            </Link>
+            <SiteAuthActions viewer={viewer} />
           </div>
         </div>
 
@@ -160,9 +160,7 @@ export function SiteShell({
                   订阅
                 </button>
               </form>
-              <p className="text-xs text-[#6f6d77]">
-                © 2026 CINEMAMIRROR. 保留所有权利。
-              </p>
+              <p className="text-xs text-[#6f6d77]">© 2026 CINEMAMIRROR. 保留所有权利。</p>
             </div>
           </div>
         </footer>

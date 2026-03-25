@@ -2,6 +2,8 @@
 import { notFound } from "next/navigation";
 
 import { SiteShell } from "@/components/site/site-shell";
+import { VideoCommentForm } from "@/components/site/video-comment-form";
+import { getViewerSession } from "@/lib/auth";
 import { VideoCard } from "@/components/site/video-card";
 import { VideoPlayer } from "@/components/site/video-player";
 import {
@@ -34,7 +36,8 @@ function formatDateLabel(value?: Date | null) {
 
 export default async function VideoDetailPage({ params }: Props) {
   const resolvedParams = await params;
-  const [categories, result] = await Promise.all([
+  const [session, categories, result] = await Promise.all([
+    getViewerSession(),
     getSiteNavigationCategories(),
     getVideoDetailPageData(resolvedParams.slug),
   ]);
@@ -77,7 +80,7 @@ export default async function VideoDetailPage({ params }: Props) {
   ];
 
   return (
-    <SiteShell categories={categories} activeNav="discover">
+    <SiteShell categories={categories} activeNav="discover" viewer={session?.user}>
       <div className="space-y-10">
         <section className="relative overflow-hidden rounded-[32px] border border-white/6 bg-[#141414] shadow-[0_32px_110px_rgba(0,0,0,0.28)]">
           <div
@@ -254,6 +257,8 @@ export default async function VideoDetailPage({ params }: Props) {
                 </span>
               </div>
 
+              <VideoCommentForm videoId={video.id} viewer={session?.user} />
+
               {video.comments.length > 0 ? (
                 <div className="mt-6 space-y-4">
                   {video.comments.map((comment) => (
@@ -371,3 +376,4 @@ export default async function VideoDetailPage({ params }: Props) {
     </SiteShell>
   );
 }
+
