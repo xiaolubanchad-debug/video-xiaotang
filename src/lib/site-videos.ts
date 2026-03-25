@@ -144,17 +144,7 @@ export async function getHomePageData() {
   );
   const usedIdsAfterHot = new Set(hotPicks.map((video) => video.id));
 
-  const latestUpdates = await prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
-      id: {
-        notIn: [...usedIdsAfterHot],
-      },
-    },
-    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
-    select: cardVideoSelect,
-    take: HOME_SECTION_MAX_ITEMS,
-  });
+  const latestUpdates = await getLatestSectionVideos(usedIdsAfterHot);
 
   const usedIdsAfterLatest = new Set([
     ...usedIdsAfterHot,
@@ -224,6 +214,39 @@ async function fillSectionVideos(
   return picked;
 }
 
+async function getLatestSectionVideos(blockedIds: Set<string>) {
+  const preferredVideos = await prisma.video.findMany({
+    where: {
+      status: VideoStatus.PUBLISHED,
+      id: {
+        notIn: [...blockedIds],
+      },
+    },
+    orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+    select: cardVideoSelect,
+    take: HOME_SECTION_MAX_ITEMS,
+  });
+
+  if (preferredVideos.length === HOME_SECTION_MAX_ITEMS) {
+    return preferredVideos;
+  }
+
+  if (preferredVideos.length === 0) {
+    return getPublishedFallbackVideos(new Set<string>(), HOME_SECTION_MAX_ITEMS, [
+      { publishedAt: "desc" },
+      { updatedAt: "desc" },
+    ]);
+  }
+
+  const fallbackVideos = await getPublishedFallbackVideos(
+    new Set(preferredVideos.map((video) => video.id)),
+    HOME_SECTION_MAX_ITEMS - preferredVideos.length,
+    [{ publishedAt: "desc" }, { updatedAt: "desc" }],
+  );
+
+  return [...preferredVideos, ...fallbackVideos];
+}
+
 async function getRandomSectionVideos(blockedIds: Set<string>) {
   const candidateIds = await prisma.video.findMany({
     where: {
@@ -243,18 +266,16 @@ async function getRandomSectionVideos(blockedIds: Set<string>) {
     HOME_SECTION_MAX_ITEMS,
   );
 
-  if (selectedIds.length === 0) {
-    return [];
-  }
-
-  const selectedVideos = await prisma.video.findMany({
-    where: {
-      id: {
-        in: selectedIds,
-      },
-    },
-    select: cardVideoSelect,
-  });
+  const selectedVideos = selectedIds.length
+    ? await prisma.video.findMany({
+        where: {
+          id: {
+            in: selectedIds,
+          },
+        },
+        select: cardVideoSelect,
+      })
+    : [];
 
   const selectedVideoMap = new Map(
     selectedVideos.map((video) => [video.id, video] as const),
@@ -268,20 +289,39 @@ async function getRandomSectionVideos(blockedIds: Set<string>) {
     return orderedVideos;
   }
 
-  const alreadyPickedIds = new Set(orderedVideos.map((video) => video.id));
-  const fallbackVideos = await prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
-      id: {
-        notIn: [...alreadyPickedIds],
-      },
-    },
-    orderBy: [{ updatedAt: "desc" }, { publishedAt: "desc" }],
-    select: cardVideoSelect,
-    take: HOME_SECTION_MAX_ITEMS - orderedVideos.length,
-  });
+  const fallbackVideos = await getPublishedFallbackVideos(
+    new Set(orderedVideos.map((video) => video.id)),
+    HOME_SECTION_MAX_ITEMS - orderedVideos.length,
+    [{ updatedAt: "desc" }, { publishedAt: "desc" }],
+  );
 
   return [...orderedVideos, ...fallbackVideos].slice(0, HOME_SECTION_MAX_ITEMS);
+}
+
+async function getPublishedFallbackVideos(
+  excludedIds: Set<string>,
+  take: number,
+  orderBy: Prisma.VideoOrderByWithRelationInput[],
+) {
+  if (take <= 0) {
+    return [];
+  }
+
+  return prisma.video.findMany({
+    where: {
+      status: VideoStatus.PUBLISHED,
+      ...(excludedIds.size > 0
+        ? {
+            id: {
+              notIn: [...excludedIds],
+            },
+          }
+        : {}),
+    },
+    orderBy,
+    select: cardVideoSelect,
+    take,
+  });
 }
 
 function shuffle<T>(items: T[]) {
