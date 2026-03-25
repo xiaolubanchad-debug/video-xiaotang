@@ -4,18 +4,22 @@ import {
   Prisma,
   VideoStatus,
 } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/slug";
 import { type VideoIngestInput } from "@/lib/validations/video-ingest";
 
-async function ensureCategory(input: VideoIngestInput["category"]) {
+async function ensureCategory(
+  tx: Prisma.TransactionClient,
+  input: VideoIngestInput["category"],
+) {
   if (!input?.name) {
     return null;
   }
 
   const slug = input.slug ?? slugify(input.name);
 
-  const category = await prisma.category.upsert({
+  const category = await tx.category.upsert({
     where: { slug },
     create: {
       name: input.name,
@@ -31,8 +35,12 @@ async function ensureCategory(input: VideoIngestInput["category"]) {
   return category.id;
 }
 
-async function syncTags(videoId: string, input: VideoIngestInput["tags"]) {
-  await prisma.videoTag.deleteMany({
+async function syncTags(
+  tx: Prisma.TransactionClient,
+  videoId: string,
+  input: VideoIngestInput["tags"],
+) {
+  await tx.videoTag.deleteMany({
     where: { videoId },
   });
 
@@ -43,7 +51,7 @@ async function syncTags(videoId: string, input: VideoIngestInput["tags"]) {
   for (const tagInput of input) {
     const slug = tagInput.slug ?? slugify(tagInput.name);
 
-    const tag = await prisma.tag.upsert({
+    const tag = await tx.tag.upsert({
       where: { slug },
       create: {
         name: tagInput.name,
@@ -56,7 +64,7 @@ async function syncTags(videoId: string, input: VideoIngestInput["tags"]) {
       },
     });
 
-    await prisma.videoTag.create({
+    await tx.videoTag.create({
       data: {
         videoId,
         tagId: tag.id,
@@ -65,8 +73,12 @@ async function syncTags(videoId: string, input: VideoIngestInput["tags"]) {
   }
 }
 
-async function syncSources(videoId: string, input: VideoIngestInput["sources"]) {
-  await prisma.videoSource.deleteMany({
+async function syncSources(
+  tx: Prisma.TransactionClient,
+  videoId: string,
+  input: VideoIngestInput["sources"],
+) {
+  await tx.videoSource.deleteMany({
     where: { videoId },
   });
 
@@ -74,7 +86,7 @@ async function syncSources(videoId: string, input: VideoIngestInput["sources"]) 
     return;
   }
 
-  await prisma.videoSource.createMany({
+  await tx.videoSource.createMany({
     data: input.map((item, index) => ({
       videoId,
       sourceType: item.sourceType,
@@ -89,8 +101,12 @@ async function syncSources(videoId: string, input: VideoIngestInput["sources"]) 
   });
 }
 
-async function syncEpisodes(videoId: string, input: VideoIngestInput["episodes"]) {
-  await prisma.videoEpisode.deleteMany({
+async function syncEpisodes(
+  tx: Prisma.TransactionClient,
+  videoId: string,
+  input: VideoIngestInput["episodes"],
+) {
+  await tx.videoEpisode.deleteMany({
     where: { videoId },
   });
 
@@ -98,7 +114,7 @@ async function syncEpisodes(videoId: string, input: VideoIngestInput["episodes"]
     return;
   }
 
-  await prisma.videoEpisode.createMany({
+  await tx.videoEpisode.createMany({
     data: input.map((item, index) => ({
       videoId,
       title: item.title,
@@ -113,10 +129,11 @@ async function syncEpisodes(videoId: string, input: VideoIngestInput["episodes"]
 }
 
 async function syncSubtitles(
+  tx: Prisma.TransactionClient,
   videoId: string,
   input: VideoIngestInput["subtitles"],
 ) {
-  await prisma.videoSubtitle.deleteMany({
+  await tx.videoSubtitle.deleteMany({
     where: { videoId },
   });
 
@@ -124,7 +141,7 @@ async function syncSubtitles(
     return;
   }
 
-  await prisma.videoSubtitle.createMany({
+  await tx.videoSubtitle.createMany({
     data: input.map((item) => ({
       videoId,
       language: item.language,
@@ -154,72 +171,119 @@ async function createIngestLog(
   });
 }
 
+async function buildUniqueSlug(
+  tx: Prisma.TransactionClient,
+  desiredSlug: string,
+  sourceProvider: string,
+  sourceExternalId: string,
+) {
+  const existingBySource = await tx.video.findUnique({
+    where: {
+      sourceProvider_sourceExternalId: {
+        sourceProvider,
+        sourceExternalId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  const baseSlug = slugify(desiredSlug);
+  let slug = baseSlug;
+  let counter = 1;
+
+  while (true) {
+    const existing = await tx.video.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+
+    if (!existing || existing.id === existingBySource?.id) {
+      return slug;
+    }
+
+    counter += 1;
+    slug = `${baseSlug}-${counter}`;
+  }
+}
+
 export async function upsertVideoFromIngest(input: VideoIngestInput) {
   try {
-    const categoryId = await ensureCategory(input.category);
-    const slug = input.slug ?? slugify(input.title);
     const ingestPayload = JSON.parse(JSON.stringify(input)) as Prisma.InputJsonValue;
     const sourcePayload = input.sourcePayload as
       | Prisma.InputJsonValue
       | undefined;
-    const publishedAt =
-      input.publishedAt != null
-        ? new Date(input.publishedAt)
-        : input.status === "PUBLISHED"
-          ? new Date()
-          : null;
 
-    const video = await prisma.video.upsert({
-      where: {
-        sourceProvider_sourceExternalId: {
+    const video = await prisma.$transaction(async (tx) => {
+      const categoryId = await ensureCategory(tx, input.category);
+      const slug = await buildUniqueSlug(
+        tx,
+        input.slug ?? input.title,
+        input.sourceProvider,
+        input.sourceExternalId,
+      );
+      const publishedAt =
+        input.publishedAt != null
+          ? new Date(input.publishedAt)
+          : input.status === "PUBLISHED"
+            ? new Date()
+            : null;
+
+      const upsertedVideo = await tx.video.upsert({
+        where: {
+          sourceProvider_sourceExternalId: {
+            sourceProvider: input.sourceProvider,
+            sourceExternalId: input.sourceExternalId,
+          },
+        },
+        create: {
+          title: input.title,
+          slug,
+          subtitle: input.subtitle,
+          description: input.description,
+          coverUrl: input.coverUrl,
+          posterUrl: input.posterUrl,
+          trailerUrl: input.trailerUrl,
+          type: input.type ?? "movie",
+          region: input.region,
+          language: input.language,
+          year: input.year,
+          durationSeconds: input.durationSeconds,
+          status: input.status ?? VideoStatus.PUBLISHED,
+          publishedAt,
           sourceProvider: input.sourceProvider,
           sourceExternalId: input.sourceExternalId,
+          sourcePayload,
+          categoryId,
         },
-      },
-      create: {
-        title: input.title,
-        slug,
-        subtitle: input.subtitle,
-        description: input.description,
-        coverUrl: input.coverUrl,
-        posterUrl: input.posterUrl,
-        trailerUrl: input.trailerUrl,
-        type: input.type ?? "movie",
-        region: input.region,
-        language: input.language,
-        year: input.year,
-        durationSeconds: input.durationSeconds,
-        status: input.status ?? VideoStatus.PUBLISHED,
-        publishedAt,
-        sourceProvider: input.sourceProvider,
-        sourceExternalId: input.sourceExternalId,
-        sourcePayload,
-        categoryId,
-      },
-      update: {
-        title: input.title,
-        slug,
-        subtitle: input.subtitle,
-        description: input.description,
-        coverUrl: input.coverUrl,
-        posterUrl: input.posterUrl,
-        trailerUrl: input.trailerUrl,
-        type: input.type ?? "movie",
-        region: input.region,
-        language: input.language,
-        year: input.year,
-        durationSeconds: input.durationSeconds,
-        status: input.status ?? VideoStatus.PUBLISHED,
-        publishedAt,
-        sourcePayload,
-        categoryId,
-      },
-    });
+        update: {
+          title: input.title,
+          slug,
+          subtitle: input.subtitle,
+          description: input.description,
+          coverUrl: input.coverUrl,
+          posterUrl: input.posterUrl,
+          trailerUrl: input.trailerUrl,
+          type: input.type ?? "movie",
+          region: input.region,
+          language: input.language,
+          year: input.year,
+          durationSeconds: input.durationSeconds,
+          status: input.status ?? VideoStatus.PUBLISHED,
+          publishedAt,
+          sourcePayload,
+          categoryId,
+        },
+      });
 
-    await syncTags(video.id, input.tags);
-    await syncSources(video.id, input.sources);
-    await syncEpisodes(video.id, input.episodes);
-    await syncSubtitles(video.id, input.subtitles);
+      await syncTags(tx, upsertedVideo.id, input.tags);
+      await syncSources(tx, upsertedVideo.id, input.sources);
+      await syncEpisodes(tx, upsertedVideo.id, input.episodes);
+      await syncSubtitles(tx, upsertedVideo.id, input.subtitles);
+
+      return upsertedVideo;
+    });
 
     await createIngestLog(
       input.sourceProvider,

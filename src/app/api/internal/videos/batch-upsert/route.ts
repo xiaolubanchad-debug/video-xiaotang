@@ -11,6 +11,16 @@ export async function POST(request: Request) {
     const json = await request.json();
     const payload = batchVideoIngestSchema.parse(json);
 
+    if (payload.items.length > 20) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Batch ingest supports up to 20 items per request.",
+        },
+        { status: 400 },
+      );
+    }
+
     const results = await Promise.allSettled(
       payload.items.map((item) => upsertVideoFromIngest(item)),
     );

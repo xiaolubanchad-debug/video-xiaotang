@@ -8,6 +8,45 @@ This project exposes internal APIs for automated content ingest. These routes ar
 - Header: `x-api-key: <INTERNAL_API_KEY>`
 - Content-Type: `application/json`
 - Idempotency key: use `sourceProvider + sourceExternalId`
+- Batch limit: `20` items per request
+
+## V1 Reliable Contract
+
+For the first frontend release, `openclaw` should prefer this simpler contract.
+
+### Required fields
+
+- `sourceProvider`
+- `sourceExternalId`
+- `title`
+- `videoUrl`
+- `videoFormat`
+
+### Recommended fields
+
+- `description`
+- `coverUrl`
+- `posterUrl`
+- `type`
+- `category`
+- `tags`
+- `year`
+- `region`
+- `language`
+- `status`
+- `publishedAt`
+
+### Supported `videoFormat`
+
+- `mp4`
+- `m3u8`
+- `webm`
+
+### Notes
+
+- `videoUrl + videoFormat` is the preferred V1 input shape.
+- The backend still accepts the older `sources` array for advanced cases.
+- Search V1 only uses `title` and `tags`.
 
 ## 1. Upsert a Video
 
@@ -27,11 +66,11 @@ curl -X POST http://localhost:3000/api/internal/videos/upsert \
     "sourceProvider": "openclaw",
     "sourceExternalId": "movie-10001",
     "title": "Neon Harbor",
-    "subtitle": "Season 1",
     "description": "A moody coastal thriller.",
+    "videoUrl": "https://stream.example.com/neon-harbor/master.m3u8",
+    "videoFormat": "m3u8",
     "coverUrl": "https://cdn.example.com/covers/neon-harbor.jpg",
     "posterUrl": "https://cdn.example.com/posters/neon-harbor.jpg",
-    "trailerUrl": "https://cdn.example.com/trailers/neon-harbor.mp4",
     "type": "series",
     "region": "US",
     "language": "English",
@@ -48,17 +87,8 @@ curl -X POST http://localhost:3000/api/internal/videos/upsert \
       "slug": "thriller"
     },
     "tags": [
-      { "name": "Noir" },
-      { "name": "Crime" }
-    ],
-    "sources": [
-      {
-        "sourceType": "hls",
-        "sourceUrl": "https://stream.example.com/neon-harbor/master.m3u8",
-        "resolution": "1080p",
-        "format": "m3u8",
-        "sortOrder": 0
-      }
+      "Noir",
+      "Crime"
     ],
     "episodes": [
       {
@@ -101,6 +131,8 @@ curl -X POST http://localhost:3000/api/internal/videos/batch-upsert \
         "sourceProvider": "openclaw",
         "sourceExternalId": "movie-10001",
         "title": "Neon Harbor",
+        "videoUrl": "https://stream.example.com/neon-harbor/master.m3u8",
+        "videoFormat": "m3u8",
         "type": "series",
         "status": "PUBLISHED"
       },
@@ -108,6 +140,8 @@ curl -X POST http://localhost:3000/api/internal/videos/batch-upsert \
         "sourceProvider": "openclaw",
         "sourceExternalId": "movie-10002",
         "title": "Signal After Dark",
+        "videoUrl": "https://cdn.example.com/signal-after-dark.mp4",
+        "videoFormat": "mp4",
         "type": "movie",
         "status": "DRAFT"
       }
