@@ -24,7 +24,7 @@ export function VideoCard({ video }: Props) {
       className="group flex h-full flex-col gap-4 transition duration-300 hover:-translate-y-1"
     >
       <div
-        className="relative aspect-video w-full overflow-hidden rounded-[22px] border border-white/8 bg-[linear-gradient(145deg,#202020,#0f0f0f)] ring-1 ring-transparent transition duration-300 group-hover:border-[#b8c4ff]/30 group-hover:ring-[#b8c4ff]/18"
+        className="relative aspect-video w-full overflow-hidden rounded-[22px] border border-white/8 bg-[linear-gradient(145deg,#202020,#0f0f0f)] ring-1 ring-transparent shadow-[0_12px_36px_rgba(0,0,0,0.18)] transition duration-300 group-hover:border-[#b8c4ff]/30 group-hover:ring-[#b8c4ff]/18"
         style={
           cover
             ? {
@@ -41,30 +41,30 @@ export function VideoCard({ video }: Props) {
             {typeLabel}
           </div>
           {duration ? (
-            <div className="rounded-full bg-[#25315f]/70 px-3 py-1 text-[11px] font-medium text-[#dde1ff] backdrop-blur-md">
+            <div className="rounded-full bg-[#25315f]/78 px-3 py-1 text-[11px] font-semibold text-[#eef1ff] backdrop-blur-md">
               {duration}
             </div>
           ) : null}
         </div>
 
         {formatLabel ? (
-          <div className="absolute right-3 top-3 rounded-full border border-[#b8c4ff]/20 bg-black/50 px-2.5 py-1 text-[10px] font-semibold tracking-[0.16em] text-[#b8c4ff] backdrop-blur-md">
+          <div className="absolute right-3 top-3 rounded-full border border-[#b8c4ff]/20 bg-black/50 px-2.5 py-1 text-[10px] font-semibold tracking-[0.16em] text-[#dfe4ff] backdrop-blur-md">
             {formatLabel}
           </div>
         ) : null}
 
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">
-          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#b8c4ff] text-base font-bold text-[#132977] shadow-[0_16px_50px_rgba(184,196,255,0.3)]">
+          <div className="grid h-14 w-14 place-items-center rounded-full bg-[#b8c4ff] text-base font-bold text-[#0b1020] shadow-[0_16px_50px_rgba(184,196,255,0.3)]">
             播放
           </div>
         </div>
       </div>
 
-      <div className="space-y-1">
-        <h3 className="line-clamp-1 text-base font-semibold text-white transition group-hover:text-[#b8c4ff]">
+      <div className="space-y-2">
+        <h3 className="line-clamp-2 text-[17px] font-semibold leading-7 text-white transition group-hover:text-[#dfe4ff]">
           {video.title}
         </h3>
-        <p className="text-sm text-[#8d8b95]">
+        <p className="text-[13px] leading-6 text-[#aaa7b3]">
           {[video.year, video.category?.name, tagLabel].filter(Boolean).join(" · ") || "最新入库"}
         </p>
       </div>

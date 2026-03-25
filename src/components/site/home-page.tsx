@@ -174,6 +174,10 @@ export async function HomePage() {
         {homePageSectionDefinitions.map((section) => {
           const videos = sectionData[section.key];
 
+          if (videos.length === 0) {
+            return null;
+          }
+
           return (
             <section key={section.key} className="space-y-6">
               <div className="flex items-end justify-between gap-4">
@@ -190,17 +194,11 @@ export async function HomePage() {
                 ) : null}
               </div>
 
-              {videos.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  {videos.map((video) => (
-                    <VideoCard key={video.id} video={video} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-[24px] border border-dashed border-white/10 bg-white/[0.03] px-6 py-10 text-sm text-slate-300">
-                  当前区块暂时没有可展示内容。
-                </div>
-              )}
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {videos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
             </section>
           );
         })}
