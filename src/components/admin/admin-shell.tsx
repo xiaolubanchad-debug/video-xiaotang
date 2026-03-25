@@ -5,6 +5,7 @@ type AdminSection =
   | "dashboard"
   | "videos"
   | "homeSections"
+  | "comments"
   | "categories"
   | "tags"
   | "banners"
@@ -49,6 +50,12 @@ const navItems: Array<{
     label: "首页 Banner",
     description: "管理首页主视觉与跳转入口",
     href: "/admin/banners",
+  },
+  {
+    section: "comments",
+    label: "评论管理",
+    description: "审核、隐藏和清理评论内容",
+    href: "/admin/comments",
   },
   {
     section: "categories",

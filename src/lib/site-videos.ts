@@ -1,4 +1,4 @@
-﻿import { BannerStatus, Prisma, VideoStatus } from "@prisma/client";
+﻿import { BannerStatus, CommentStatus, Prisma, VideoStatus } from "@prisma/client";
 
 import { HOME_SECTION_MAX_ITEMS } from "@/lib/home-sections";
 import { prisma } from "@/lib/prisma";
@@ -414,6 +414,29 @@ export async function getVideoDetailPageData(slug: string) {
           publishedAt: true,
         },
       },
+      comments: {
+        where: {
+          status: CommentStatus.APPROVED,
+          parentId: null,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: 6,
+        select: {
+          id: true,
+          content: true,
+          likeCount: true,
+          createdAt: true,
+          user: {
+            select: {
+              nickname: true,
+              email: true,
+              avatar: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -443,3 +466,4 @@ export async function getVideoDetailPageData(slug: string) {
     relatedVideos,
   };
 }
+

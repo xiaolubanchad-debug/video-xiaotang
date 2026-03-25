@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Hls from "hls.js";
 import { useEffect, useRef, useState } from "react";
@@ -73,12 +73,11 @@ export function VideoPlayer({ src, format, poster, title }: Props) {
     };
   }, [format, sourceKey, src]);
 
-  const error =
-    unsupportedHls
-      ? "当前浏览器暂不支持此 HLS 播放流。"
-      : errorState?.key === sourceKey
-        ? errorState.message
-        : null;
+  const error = unsupportedHls
+    ? "当前浏览器暂不支持此 HLS 播放流。"
+    : errorState?.key === sourceKey
+      ? errorState.message
+      : null;
 
   return (
     <div className="overflow-hidden rounded-[28px] border border-white/8 bg-[#111111] shadow-[0_24px_90px_rgba(0,0,0,0.32)]">

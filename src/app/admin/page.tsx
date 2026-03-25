@@ -33,6 +33,12 @@ export default async function AdminPage() {
           >
             管理 Banner
           </Link>
+          <Link
+            href="/admin/comments"
+            className="rounded-full border border-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/8"
+          >
+            评论管理
+          </Link>
         </>
       }
     >
@@ -57,6 +63,11 @@ export default async function AdminPage() {
             "首页内容区块",
             "维护热门推荐和站长精选两个手工编排区块，最新更新与猜你喜欢由前台自动生成。",
             "/admin/home-sections",
+          ],
+          [
+            "评论管理",
+            "集中查看评论状态，支持审核通过、隐藏和删除，先把互动内容的运营闭环跑通。",
+            "/admin/comments",
           ],
           [
             "采集日志",
@@ -94,7 +105,8 @@ export default async function AdminPage() {
             <p>1. 先在视频管理里补齐标题、封面、状态和来源。</p>
             <p>2. 用分类和标签整理前台导航与搜索命中。</p>
             <p>3. 用 Banner 管理首页主视觉和热点入口。</p>
-            <p>4. 如采集异常，第一时间检查 ingest 日志。</p>
+            <p>4. 审核评论内容，确保前台展示的短评干净可控。</p>
+            <p>5. 如采集异常，第一时间检查 ingest 日志。</p>
           </div>
         </article>
 
