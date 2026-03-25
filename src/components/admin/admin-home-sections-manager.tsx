@@ -1,9 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 
 import {
-  homePageSectionDefinitions,
   HOME_SECTION_MAX_ITEMS,
   ManualHomeSectionKey,
 } from "@/lib/home-sections";
@@ -178,7 +177,8 @@ export function AdminHomeSectionsManager({ sections, videos }: Props) {
           <div>
             <h2 className="text-2xl font-semibold text-white">管理首页手工区块</h2>
             <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
-              首页固定 4 个内容区块，其中“热门推荐”和“站长精选”由后台手工编排。“最新更新”按发布时间倒序展示，“猜你喜欢”每次刷新随机返回 8 个不重复视频。
+              首页固定 4 个内容区块，其中“热门推荐”和“站长精选”由后台手工编排。
+              “最新更新”按发布时间倒序展示，“猜你喜欢”每次刷新随机返回 8 个不重复视频。
             </p>
           </div>
 
@@ -290,7 +290,7 @@ export function AdminHomeSectionsManager({ sections, videos }: Props) {
                         <button
                           type="button"
                           onClick={() => handleRemove(section.key, video.id)}
-                          className="rounded-full border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs font-semibold text-rose-100 transition hover:bg-rose-400/20"
+                          className="rounded-full border border-rose-400/25 px-3 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-400/10"
                         >
                           移除
                         </button>
@@ -304,18 +304,12 @@ export function AdminHomeSectionsManager({ sections, videos }: Props) {
         })}
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {homePageSectionDefinitions.map((section) => (
-          <article
-            key={section.key}
-            className="rounded-[24px] border border-white/10 bg-white/5 p-5"
-          >
-            <h3 className="text-lg font-semibold text-white">{section.title}</h3>
-            <p className="mt-3 text-sm leading-7 text-slate-300">
-              {section.description}
-            </p>
-          </article>
-        ))}
+      <section className="rounded-[28px] border border-white/10 bg-white/5 p-6">
+        <h3 className="text-lg font-semibold text-white">自动区块规则</h3>
+        <p className="mt-3 text-sm leading-7 text-slate-300">
+          “最新更新”会自动按发布时间倒序展示 8 个视频，“猜你喜欢”会在每次刷新时随机展示 8 个视频。
+          自动区块会尽量避开手工区块里已经出现的内容，但当片库内容较少时会自动补位，避免首页出现空区块。
+        </p>
       </section>
     </div>
   );

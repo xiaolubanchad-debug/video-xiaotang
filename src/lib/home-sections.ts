@@ -1,4 +1,4 @@
-export const HOME_SECTION_MAX_ITEMS = 8;
+﻿export const HOME_SECTION_MAX_ITEMS = 8;
 
 export const manualHomeSectionDefinitions = [
   {

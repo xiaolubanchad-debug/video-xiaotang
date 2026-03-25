@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 const items = [
   { href: "/me", label: "总览" },
@@ -19,7 +19,7 @@ export function MeNav({ activeHref }: { activeHref: string }) {
             href={item.href}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
               active
-                ? "bg-[#b8c4ff] text-[#132977]"
+                ? "bg-[#b8c4ff] text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                 : "border border-white/8 bg-white/[0.04] text-white hover:bg-white/[0.08]"
             }`}
           >

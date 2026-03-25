@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -107,7 +107,7 @@ export function VideoCommentForm({ videoId, viewer }: Props) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="mt-4 rounded-full bg-[#b8c4ff] px-5 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+        className="mt-4 rounded-full bg-[#b8c4ff] px-5 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "提交中..." : "提交评论"}
       </button>

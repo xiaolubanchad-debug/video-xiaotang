@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { getViewerSession } from "@/lib/auth";
 import { homePageSectionDefinitions } from "@/lib/home-sections";
@@ -103,14 +103,14 @@ export async function HomePage() {
                   {isExternalHeroLink ? (
                     <a
                       href={heroPrimaryHref}
-                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
                     >
                       {heroPrimaryLabel}
                     </a>
                   ) : (
                     <Link
                       href={heroPrimaryHref}
-                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                      className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
                     >
                       {heroPrimaryLabel}
                     </Link>
@@ -157,7 +157,7 @@ export async function HomePage() {
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/admin/videos/new"
-                className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
               >
                 新增视频
               </Link>
@@ -181,7 +181,10 @@ export async function HomePage() {
                   <h2 className="font-serif text-4xl text-white">{section.title}</h2>
                 </div>
                 {section.key === "latest" ? (
-                  <Link href="/search" className="text-sm font-semibold text-[#b8c4ff] transition hover:underline">
+                  <Link
+                    href="/search"
+                    className="text-sm font-semibold text-[#b8c4ff] transition hover:underline"
+                  >
                     查看全部
                   </Link>
                 ) : null}

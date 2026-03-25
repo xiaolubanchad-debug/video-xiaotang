@@ -65,7 +65,7 @@ export default async function MyHistoryPage() {
                   <div className="flex flex-wrap gap-3">
                     <Link
                       href={`/videos/${item.video.slug}`}
-                      className="rounded-full bg-[#b8c4ff] px-5 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                      className="rounded-full bg-[#b8c4ff] px-5 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
                     >
                       回到详情页
                     </Link>

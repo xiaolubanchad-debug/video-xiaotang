@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export default function Error({
   error,
@@ -18,7 +18,7 @@ export default function Error({
         <button
           type="button"
           onClick={reset}
-          className="mt-8 rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+          className="mt-8 rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
         >
           重新加载
         </button>

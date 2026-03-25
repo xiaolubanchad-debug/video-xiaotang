@@ -142,7 +142,7 @@ export default async function VideoDetailPage({ params }: Props) {
                 {playableUrl ? (
                   <a
                     href="#player"
-                    className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                    className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
                   >
                     立即播放
                   </a>

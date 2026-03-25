@@ -60,7 +60,7 @@ export default async function SearchPage({ searchParams }: Props) {
             />
             <button
               type="submit"
-              className="h-14 rounded-[18px] bg-[#b8c4ff] px-8 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+              className="h-14 rounded-[18px] bg-[#b8c4ff] px-8 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
             >
               搜索
             </button>

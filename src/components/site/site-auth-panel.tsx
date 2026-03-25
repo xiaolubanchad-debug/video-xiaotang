@@ -84,7 +84,7 @@ export function SiteAuthPanel() {
             }}
             className={`flex-1 rounded-full px-4 py-3 text-sm font-semibold transition ${
               mode === tab.key
-                ? "bg-[#b8c4ff] text-[#132977]"
+                ? "bg-[#b8c4ff] text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                 : "text-slate-300 hover:bg-white/[0.05]"
             }`}
           >

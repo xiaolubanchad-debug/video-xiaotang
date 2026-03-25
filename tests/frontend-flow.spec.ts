@@ -42,12 +42,24 @@ test("public frontend flow is coherent from home to search to detail", async ({
     await page.goto("/");
 
     await expect(page.getByRole("link", { name: "首页" }).first()).toBeVisible();
+    await expect(page.getByRole("heading", { name: "热门推荐" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "最新更新" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "站长精选" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "猜你喜欢" })).toBeVisible();
     await expect(page.getByText(title).first()).toBeVisible();
     await expect(
-      page.locator("section").filter({ has: page.getByRole("heading", { name: "最新更新" }) }).getByText(title).first(),
+      page
+        .locator("section")
+        .filter({ has: page.getByRole("heading", { name: "最新更新" }) })
+        .getByText(title)
+        .first(),
     ).toBeVisible();
     await expect(
-      page.locator("section").filter({ has: page.getByRole("heading", { name: "猜你喜欢" }) }).getByText(title).first(),
+      page
+        .locator("section")
+        .filter({ has: page.getByRole("heading", { name: "猜你喜欢" }) })
+        .getByText(title)
+        .first(),
     ).toBeVisible();
 
     await page.getByRole("searchbox").fill(title);

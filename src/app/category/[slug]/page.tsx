@@ -97,7 +97,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                       href={buildFilterHref(item.slug, null, null)}
                       className={`rounded-full px-4 py-2 text-sm transition ${
                         isActive
-                          ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                          ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                           : "bg-[#1f1f1f] text-[#d3d1d8] hover:bg-[#282828]"
                       }`}
                     >
@@ -117,7 +117,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   href={buildFilterHref(category.slug, null, selectedYear)}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     !selectedRegion
-                      ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                      ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                       : "bg-[#1f1f1f] text-[#d3d1d8] hover:bg-[#282828]"
                   }`}
                 >
@@ -129,7 +129,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                     href={buildFilterHref(category.slug, region, selectedYear)}
                     className={`rounded-full px-4 py-2 text-sm transition ${
                       selectedRegion === region
-                        ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                        ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                         : "bg-[#1f1f1f] text-[#d3d1d8] hover:bg-[#282828]"
                     }`}
                   >
@@ -148,7 +148,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                   href={buildFilterHref(category.slug, selectedRegion, null)}
                   className={`rounded-full px-4 py-2 text-sm transition ${
                     !selectedYear
-                      ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                      ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                       : "bg-[#1f1f1f] text-[#d3d1d8] hover:bg-[#282828]"
                   }`}
                 >
@@ -160,7 +160,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                     href={buildFilterHref(category.slug, selectedRegion, year)}
                     className={`rounded-full px-4 py-2 text-sm transition ${
                       selectedYear === year
-                        ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                        ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                         : "bg-[#1f1f1f] text-[#d3d1d8] hover:bg-[#282828]"
                     }`}
                   >

@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 export default function NotFound() {
   return (
@@ -7,12 +7,12 @@ export default function NotFound() {
         <p className="text-xs tracking-[0.4em] text-[#b8c4ff]/70">内容不存在</p>
         <h1 className="mt-4 font-serif text-5xl text-white">你访问的影片暂时不存在</h1>
         <p className="mt-4 text-base leading-8 text-[#c5c3cc]">
-          当前请求的影片或分类不在已发布片库中，可能尚未同步，或已经被移除。
+          当前请求的影片或分类不在已发布片库中，可能尚未同步，或者已经被移除。
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="/"
-            className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+            className="rounded-xl bg-[#b8c4ff] px-6 py-3 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
           >
             返回首页
           </Link>

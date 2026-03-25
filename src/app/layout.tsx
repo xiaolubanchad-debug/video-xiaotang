@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Noto_Sans_SC, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | CINEMAMIRROR",
   },
   description:
-    "小糖视频的前台站点，提供沉浸式电影与剧集浏览体验，内容由后台与 OpenClaw 采集接口统一驱动。",
+    "小糖视频的前台站点，提供沉浸式电影与剧集浏览体验，内容由后台 CMS 和 OpenClaw 采集接口统一驱动。",
 };
 
 export default function RootLayout({

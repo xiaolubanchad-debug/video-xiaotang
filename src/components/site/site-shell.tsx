@@ -86,7 +86,7 @@ export function SiteShell({
                 />
                 <button
                   type="submit"
-                  className="rounded-full bg-[#b8c4ff] px-4 py-2 text-sm font-semibold text-[#132977] transition hover:brightness-110"
+                  className="rounded-full bg-[#b8c4ff] px-4 py-2 text-sm font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)] transition hover:bg-[#cad2ff]"
                 >
                   搜索
                 </button>
@@ -107,7 +107,7 @@ export function SiteShell({
                 href={item.href}
                 className={`flex-1 rounded-full px-4 py-2 text-center text-sm transition ${
                   isActive
-                    ? "bg-[#b8c4ff] font-semibold text-[#132977]"
+                    ? "bg-[#b8c4ff] font-semibold text-[#0b1020] shadow-[inset_0_1px_0_rgba(255,255,255,0.34)]"
                     : "border border-white/6 bg-white/[0.04] text-[#d6d4dc]"
                 }`}
               >
