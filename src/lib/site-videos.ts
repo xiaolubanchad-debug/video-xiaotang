@@ -67,13 +67,59 @@ export type SiteHeroBanner = Prisma.BannerGetPayload<{
   select: typeof heroBannerSelect;
 }>;
 
+const FRONTEND_BLOCKED_TITLE_PREFIXES = [
+  "Admin User Cleanup",
+  "Codex Test Video",
+  "Codex Updated Video",
+] as const;
+
+function getFrontendVisibleVideoWhere(
+  extraWhere: Prisma.VideoWhereInput = {},
+): Prisma.VideoWhereInput {
+  return {
+    AND: [
+      {
+        status: VideoStatus.PUBLISHED,
+        categoryId: {
+          not: null,
+        },
+        sources: {
+          some: {
+            sourceUrl: {
+              not: "",
+            },
+          },
+        },
+      },
+      {
+        NOT: FRONTEND_BLOCKED_TITLE_PREFIXES.map((prefix) => ({
+          title: {
+            startsWith: prefix,
+            mode: "insensitive" as const,
+          },
+        })),
+      },
+      extraWhere,
+    ],
+  };
+}
+
+function isFrontendVisibleVideo(video: SiteVideoCard) {
+  const hasCategory = Boolean(video.category);
+  const hasPlayableSource = video.sources.some((source) => Boolean(source.sourceUrl));
+  const normalizedTitle = video.title.trim().toLowerCase();
+  const isBlockedFixture = FRONTEND_BLOCKED_TITLE_PREFIXES.some((prefix) =>
+    normalizedTitle.startsWith(prefix.toLowerCase()),
+  );
+
+  return hasCategory && hasPlayableSource && !isBlockedFixture;
+}
+
 export async function getSiteNavigationCategories() {
   return prisma.category.findMany({
     where: {
       videos: {
-        some: {
-          status: VideoStatus.PUBLISHED,
-        },
+        some: getFrontendVisibleVideoWhere(),
       },
     },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
@@ -94,16 +140,24 @@ export async function getHomePageData() {
       where: {
         status: BannerStatus.ACTIVE,
         OR: [{ startAt: null }, { startAt: { lte: now } }],
-        AND: [{ OR: [{ endAt: null }, { endAt: { gte: now } }] }],
+        AND: [
+          { OR: [{ endAt: null }, { endAt: { gte: now } }] },
+          {
+            OR: [
+              { videoId: null },
+              {
+                video: getFrontendVisibleVideoWhere(),
+              },
+            ],
+          },
+        ],
       },
       orderBy: [{ sortOrder: "asc" }, { updatedAt: "desc" }],
       select: heroBannerSelect,
       take: 3,
     }),
     prisma.video.findMany({
-      where: {
-        status: VideoStatus.PUBLISHED,
-      },
+      where: getFrontendVisibleVideoWhere(),
       orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
       select: cardVideoSelect,
       take: HOME_SECTION_MAX_ITEMS,
@@ -164,7 +218,7 @@ export async function getHomePageData() {
   const guessYouLike = await getRandomSectionVideos(usedIdsAfterEditor);
 
   return {
-    heroBanners,
+    heroBanners: heroBanners.filter((banner) => !banner.video || isFrontendVisibleVideo(banner.video)),
     heroVideos,
     sections: {
       hotPicks,
@@ -183,7 +237,7 @@ async function fillSectionVideos(
   const seenIds = new Set(blockedIds);
 
   for (const video of preferredVideos) {
-    if (seenIds.has(video.id)) {
+    if (seenIds.has(video.id) || !isFrontendVisibleVideo(video)) {
       continue;
     }
 
@@ -197,12 +251,11 @@ async function fillSectionVideos(
 
   if (picked.length < HOME_SECTION_MAX_ITEMS) {
     const fallbackVideos = await prisma.video.findMany({
-      where: {
-        status: VideoStatus.PUBLISHED,
+      where: getFrontendVisibleVideoWhere({
         id: {
           notIn: [...seenIds],
         },
-      },
+      }),
       orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
       select: cardVideoSelect,
       take: HOME_SECTION_MAX_ITEMS - picked.length,
@@ -216,12 +269,11 @@ async function fillSectionVideos(
 
 async function getLatestSectionVideos(blockedIds: Set<string>) {
   const preferredVideos = await prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
+    where: getFrontendVisibleVideoWhere({
       id: {
         notIn: [...blockedIds],
       },
-    },
+    }),
     orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     select: cardVideoSelect,
     take: HOME_SECTION_MAX_ITEMS,
@@ -249,12 +301,11 @@ async function getLatestSectionVideos(blockedIds: Set<string>) {
 
 async function getRandomSectionVideos(blockedIds: Set<string>) {
   const candidateIds = await prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
+    where: getFrontendVisibleVideoWhere({
       id: {
         notIn: [...blockedIds],
       },
-    },
+    }),
     select: {
       id: true,
     },
@@ -308,16 +359,15 @@ async function getPublishedFallbackVideos(
   }
 
   return prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
-      ...(excludedIds.size > 0
+    where: getFrontendVisibleVideoWhere(
+      excludedIds.size > 0
         ? {
             id: {
               notIn: [...excludedIds],
             },
           }
-        : {}),
-    },
+        : {},
+    ),
     orderBy,
     select: cardVideoSelect,
     take,
@@ -344,9 +394,7 @@ export async function getCategoryPageData(slug: string) {
       slug: true,
       description: true,
       videos: {
-        where: {
-          status: VideoStatus.PUBLISHED,
-        },
+        where: getFrontendVisibleVideoWhere(),
         orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
         select: cardVideoSelect,
         take: 24,
@@ -363,8 +411,7 @@ export async function searchSiteVideos(query: string) {
   }
 
   return prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
+    where: getFrontendVisibleVideoWhere({
       OR: [
         {
           title: {
@@ -385,7 +432,7 @@ export async function searchSiteVideos(query: string) {
           },
         },
       ],
-    },
+    }),
     orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     select: cardVideoSelect,
     take: 24,
@@ -487,8 +534,7 @@ export async function getVideoDetailPageData(slug: string) {
   }
 
   const relatedVideos = await prisma.video.findMany({
-    where: {
-      status: VideoStatus.PUBLISHED,
+    where: getFrontendVisibleVideoWhere({
       id: {
         not: video.id,
       },
@@ -497,7 +543,7 @@ export async function getVideoDetailPageData(slug: string) {
             categoryId: video.category.id,
           }
         : {}),
-    },
+    }),
     orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
     select: cardVideoSelect,
     take: 6,

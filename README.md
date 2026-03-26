@@ -111,6 +111,8 @@ CREATE DATABASE video_xiaotang;
 npm run prisma:migrate
 ```
 
+这个命令用于本地开发环境。
+
 ### 5. 生成 Prisma Client
 
 ```bash
@@ -174,13 +176,18 @@ SUPER_ADMIN_PASSWORD="replace-this-password"
 ```bash
 npm install
 npm run prisma:generate
-npm run prisma:migrate
-npm run db:seed
+npm run prisma:migrate:deploy
 npm run build
 npm run start
 ```
 
 默认生产启动端口为 `3000`。
+
+如果是第一次部署，或者你需要初始化超级管理员，再额外执行：
+
+```bash
+npm run db:seed
+```
 
 ### Nginx 反向代理示例
 
@@ -231,6 +238,7 @@ npm run build
 npm run start
 npm run lint
 npm run prisma:migrate
+npm run prisma:migrate:deploy
 npm run prisma:generate
 npm run prisma:studio
 npm run db:seed
@@ -253,6 +261,7 @@ npx playwright test tests/admin-user-management.spec.ts
 ```bash
 npm run lint
 npm run build
+npx playwright test
 ```
 
 ## OpenClaw 接入说明
@@ -353,6 +362,7 @@ DEVELOPMENT_PLAN.md    开发计划草案
 - [OPENCLAW_INGEST_API.md](./OPENCLAW_INGEST_API.md)
 - [VIDEO_CMS_PLAN.md](./VIDEO_CMS_PLAN.md)
 - [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)
+- [EC2_DEPLOY_CHECKLIST.md](./EC2_DEPLOY_CHECKLIST.md)
 
 ## 说明
 
