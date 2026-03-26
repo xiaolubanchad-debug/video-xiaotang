@@ -66,8 +66,6 @@ export function SiteShell({
                   </Link>
                 );
               })}
-              <span className="cursor-default text-[#6f6e78]">榜单</span>
-              <span className="cursor-default text-[#6f6e78]">片库</span>
             </nav>
           </div>
 
